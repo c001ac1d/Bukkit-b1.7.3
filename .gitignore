@@ -29,3 +29,9 @@
 *.ipr
 *.iws
 .idea/
+
+# minecraft server sources
+modified/*
+original/*
+modified
+original
