@@ -1,0 +1,15 @@
+diff --git a/original/Slot.java b/modified/Slot.java
+index f55974b0..18cc6a57 100644
+--- a/original/Slot.java
++++ b/modified/Slot.java
+@@ -2,8 +2,8 @@ package net.minecraft.server;
+ 
+ public class Slot {
+ 
+-    private final int index;
+-    private final IInventory inventory;
++    public final int index; // CraftBukkit - private -> public
++    public final IInventory inventory; // CraftBukkit - private -> public
+     public int a;
+     public int b;
+     public int c;

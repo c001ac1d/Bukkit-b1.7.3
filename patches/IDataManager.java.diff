@@ -1,0 +1,19 @@
+diff --git a/original/IDataManager.java b/modified/IDataManager.java
+index 8185017b..dc725941 100644
+--- a/original/IDataManager.java
++++ b/modified/IDataManager.java
+@@ -2,6 +2,7 @@ package net.minecraft.server;
+ 
+ import java.io.File;
+ import java.util.List;
++import java.util.UUID; // CraftBukkit
+ 
+ public interface IDataManager {
+ 
+@@ -20,4 +21,6 @@ public interface IDataManager {
+     void e();
+ 
+     File b(String s);
++
++    UUID getUUID(); // CraftBukkit
+ }

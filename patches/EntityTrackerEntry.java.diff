@@ -1,0 +1,58 @@
+diff --git a/original/EntityTrackerEntry.java b/modified/EntityTrackerEntry.java
+index 3eb66696..20198358 100644
+--- a/original/EntityTrackerEntry.java
++++ b/modified/EntityTrackerEntry.java
+@@ -127,7 +127,28 @@ public class EntityTrackerEntry {
+         }
+ 
+         if (this.tracker.velocityChanged) {
+-            this.b((Packet) (new Packet28EntityVelocity(this.tracker)));
++            // CraftBukkit start - create PlayerVelocity event
++            boolean cancelled = false;
++
++            if(this.tracker instanceof EntityPlayer) {
++                org.bukkit.entity.Player player = (org.bukkit.entity.Player) this.tracker.getBukkitEntity();
++                org.bukkit.util.Vector velocity = player.getVelocity();
++
++                org.bukkit.event.player.PlayerVelocityEvent event = new org.bukkit.event.player.PlayerVelocityEvent(player, velocity);
++                this.tracker.world.getServer().getPluginManager().callEvent(event);
++
++                if(event.isCancelled()) {
++                    cancelled = true;
++                }
++                else if(!velocity.equals(event.getVelocity())) {
++                    player.setVelocity(velocity);
++                }
++            }
++
++            if(!cancelled) {
++                this.b((Packet) (new Packet28EntityVelocity(this.tracker)));
++            }
++            // CraftBukkit end
+             this.tracker.velocityChanged = false;
+         }
+     }
+@@ -211,6 +232,11 @@ public class EntityTrackerEntry {
+             entityitem.locZ = (double) packet21pickupspawn.d / 32.0D;
+             return packet21pickupspawn;
+         } else if (this.tracker instanceof EntityPlayer) {
++            // CraftBukkit start - limit name length to 16 characters
++            if (((EntityHuman) this.tracker).name.length() > 16) {
++                ((EntityHuman) this.tracker).name = ((EntityHuman) this.tracker).name.substring(0, 16);
++            }
++            // CraftBukkit end
+             return new Packet20NamedEntitySpawn((EntityHuman) this.tracker);
+         } else {
+             if (this.tracker instanceof EntityMinecart) {
+@@ -243,7 +269,10 @@ public class EntityTrackerEntry {
+                 return new Packet23VehicleSpawn(this.tracker, 61);
+             } else if (this.tracker instanceof EntityFireball) {
+                 EntityFireball entityfireball = (EntityFireball) this.tracker;
+-                Packet23VehicleSpawn packet23vehiclespawn = new Packet23VehicleSpawn(this.tracker, 63, ((EntityFireball) this.tracker).shooter.id);
++                // CraftBukkit start - added check for null shooter
++                int shooter = ((EntityFireball) this.tracker).shooter != null ? ((EntityFireball) this.tracker).shooter.id : 1;
++                Packet23VehicleSpawn packet23vehiclespawn = new Packet23VehicleSpawn(this.tracker, 63, shooter);
++                // CraftBukkit end
+ 
+                 packet23vehiclespawn.e = (int) (entityfireball.c * 8000.0D);
+                 packet23vehiclespawn.f = (int) (entityfireball.d * 8000.0D);

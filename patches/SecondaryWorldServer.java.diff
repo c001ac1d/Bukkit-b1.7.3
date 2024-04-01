@@ -1,0 +1,20 @@
+diff --git a/original/SecondaryWorldServer.java b/modified/SecondaryWorldServer.java
+index 9de7ddaa..1f6ff334 100644
+--- a/original/SecondaryWorldServer.java
++++ b/modified/SecondaryWorldServer.java
+@@ -1,9 +1,12 @@
+ package net.minecraft.server;
+ 
+-public class SecondaryWorldServer extends WorldServer {
++import org.bukkit.generator.ChunkGenerator; // CraftBukkit
+ 
+-    public SecondaryWorldServer(MinecraftServer minecraftserver, IDataManager idatamanager, String s, int i, long j, WorldServer worldserver) {
+-        super(minecraftserver, idatamanager, s, i, j);
++public class SecondaryWorldServer extends WorldServer {
++    // CraftBukkit start
++    public SecondaryWorldServer(MinecraftServer minecraftserver, IDataManager idatamanager, String s, int i, long j, WorldServer worldserver, org.bukkit.World.Environment env, ChunkGenerator gen) {
++        super(minecraftserver, idatamanager, s, i, j, env, gen);
++        // CraftBukkit end
+         this.worldMaps = worldserver.worldMaps;
+     }
+ }

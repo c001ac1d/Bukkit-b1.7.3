@@ -1,0 +1,51 @@
+diff --git a/original/ThreadLoginVerifier.java b/modified/ThreadLoginVerifier.java
+index 4c248631..4d98e6ad 100644
+--- a/original/ThreadLoginVerifier.java
++++ b/modified/ThreadLoginVerifier.java
+@@ -5,13 +5,24 @@ import java.io.InputStreamReader;
+ import java.net.URL;
+ import java.net.URLEncoder;
+ 
++// CraftBukkit start
++import org.bukkit.craftbukkit.CraftServer;
++import org.bukkit.event.player.PlayerPreLoginEvent;
++// CraftBukkit end
++
+ class ThreadLoginVerifier extends Thread {
+ 
+     final Packet1Login loginPacket;
+ 
+     final NetLoginHandler netLoginHandler;
+ 
+-    ThreadLoginVerifier(NetLoginHandler netloginhandler, Packet1Login packet1login) {
++    // CraftBukkit start
++    CraftServer server;
++
++    ThreadLoginVerifier(NetLoginHandler netloginhandler, Packet1Login packet1login, CraftServer server) {
++        this.server = server;
++        // CraftBukkit end
++
+         this.netLoginHandler = netloginhandler;
+         this.loginPacket = packet1login;
+     }
+@@ -25,6 +36,20 @@ class ThreadLoginVerifier extends Thread {
+ 
+             bufferedreader.close();
+             if (s1.equals("YES")) {
++                // CraftBukkit start
++                if (this.netLoginHandler.getSocket() == null) {
++                    return;
++                }
++
++                PlayerPreLoginEvent event = new PlayerPreLoginEvent(this.loginPacket.name, this.netLoginHandler.getSocket().getInetAddress());
++                this.server.getPluginManager().callEvent(event);
++
++                if (event.getResult() != PlayerPreLoginEvent.Result.ALLOWED) {
++                    this.netLoginHandler.disconnect(event.getKickMessage());
++                    return;
++                }
++                // CraftBukkit end
++
+                 NetLoginHandler.a(this.netLoginHandler, this.loginPacket);
+             } else {
+                 this.netLoginHandler.disconnect("Failed to verify username!");

@@ -1,0 +1,22 @@
+diff --git a/original/ContainerWorkbench.java b/modified/ContainerWorkbench.java
+index a0145a5b..221cc768 100644
+--- a/original/ContainerWorkbench.java
++++ b/modified/ContainerWorkbench.java
+@@ -39,7 +39,16 @@ public class ContainerWorkbench extends Container {
+     }
+ 
+     public void a(IInventory iinventory) {
+-        this.resultInventory.setItem(0, CraftingManager.getInstance().craft(this.craftInventory));
++        // CraftBukkit start
++        ItemStack craftResult = CraftingManager.getInstance().craft(this.craftInventory);
++        this.resultInventory.setItem(0, craftResult);
++        if (super.listeners.size() < 1) {
++            return;
++        }
++
++        EntityPlayer player = (EntityPlayer) super.listeners.get(0); // TODO: Is this _always_ correct? Seems like it.
++        player.netServerHandler.sendPacket(new Packet103SetSlot(player.activeContainer.windowId, 0, craftResult));
++        // CraftBukkit end
+     }
+ 
+     public void a(EntityHuman entityhuman) {

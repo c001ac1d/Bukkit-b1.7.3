@@ -1,0 +1,160 @@
+diff --git a/original/ItemInWorldManager.java b/modified/ItemInWorldManager.java
+index 5e84ab1f..7e5df214 100644
+--- a/original/ItemInWorldManager.java
++++ b/modified/ItemInWorldManager.java
+@@ -1,5 +1,14 @@
+ package net.minecraft.server;
+ 
++// CraftBukkit start
++import org.bukkit.event.block.BlockBreakEvent;
++import org.bukkit.event.block.BlockDamageEvent;
++import org.bukkit.craftbukkit.event.CraftEventFactory;
++import org.bukkit.event.Event;
++import org.bukkit.event.block.Action;
++import org.bukkit.event.player.PlayerInteractEvent;
++// CraftBukkit end
++
+ public class ItemInWorldManager {
+ 
+     private WorldServer world;
+@@ -21,7 +30,7 @@ public class ItemInWorldManager {
+     }
+ 
+     public void a() {
+-        ++this.currentTick;
++        this.currentTick = (int) (System.currentTimeMillis() / 50); // CraftBukkit
+         if (this.i) {
+             int i = this.currentTick - this.m;
+             int j = this.world.getTypeId(this.j, this.k, this.l);
+@@ -41,15 +50,55 @@ public class ItemInWorldManager {
+     }
+ 
+     public void dig(int i, int j, int k, int l) {
+-        this.world.douseFire((EntityHuman) null, i, j, k, l);
+-        this.lastDigTick = this.currentTick;
++        // this.world.douseFire((EntityHuman) null, i, j, k, l); // CraftBukkit - moved down
++        this.lastDigTick = (int) (System.currentTimeMillis() / 50); // CraftBukkit
+         int i1 = this.world.getTypeId(i, j, k);
+ 
+-        if (i1 > 0) {
++        // CraftBukkit start
++        // Swings at air do *NOT* exist.
++        if (i1 <= 0) {
++            return;
++        }
++
++        PlayerInteractEvent event = CraftEventFactory.callPlayerInteractEvent(this.player, Action.LEFT_CLICK_BLOCK, i, j, k, l, this.player.inventory.getItemInHand());
++
++        if (event.useInteractedBlock() == Event.Result.DENY) {
++            // If we denied a door from opening, we need to send a correcting update to the client, as it already opened the door.
++            if (i1 == Block.WOODEN_DOOR.id) {
++                // For some reason *BOTH* the bottom/top part have to be marked updated.
++                boolean bottom = (this.world.getData(i, j, k) & 8) == 0;
++                ((EntityPlayer) this.player).netServerHandler.sendPacket(new Packet53BlockChange(i, j, k, this.world));
++                ((EntityPlayer) this.player).netServerHandler.sendPacket(new Packet53BlockChange(i, j + (bottom ? 1 : -1), k, this.world));
++            } else if (i1 == Block.TRAP_DOOR.id) {
++                ((EntityPlayer) this.player).netServerHandler.sendPacket(new Packet53BlockChange(i, j, k, this.world));
++            }
++        } else {
+             Block.byId[i1].b(this.world, i, j, k, this.player);
++            // Allow fire punching to be blocked
++            this.world.douseFire((EntityHuman) null, i, j, k, l);
+         }
+ 
+-        if (i1 > 0 && Block.byId[i1].getDamage(this.player) >= 1.0F) {
++        // Handle hitting a block
++        float toolDamage = Block.byId[i1].getDamage(this.player);
++        if (event.useItemInHand() == Event.Result.DENY) {
++            // If we 'insta destroyed' then the client needs to be informed.
++            if (toolDamage > 1.0f) {
++                ((EntityPlayer) this.player).netServerHandler.sendPacket(new Packet53BlockChange(i, j, k, this.world));
++            }
++            return;
++        }
++        BlockDamageEvent blockEvent = CraftEventFactory.callBlockDamageEvent(this.player, i, j, k, this.player.inventory.getItemInHand(), toolDamage >= 1.0f);
++
++        if (blockEvent.isCancelled()) {
++            return;
++        }
++
++        if (blockEvent.getInstaBreak()) {
++            toolDamage = 2.0f;
++        }
++
++        if (toolDamage >= 1.0F) {
++            // CraftBukkit end
+             this.c(i, j, k);
+         } else {
+             this.e = i;
+@@ -60,6 +109,7 @@ public class ItemInWorldManager {
+ 
+     public void a(int i, int j, int k) {
+         if (i == this.e && j == this.f && k == this.g) {
++            this.currentTick = (int) (System.currentTimeMillis() / 50); // CraftBukkit
+             int l = this.currentTick - this.lastDigTick;
+             int i1 = this.world.getTypeId(i, j, k);
+ 
+@@ -77,6 +127,10 @@ public class ItemInWorldManager {
+                     this.m = this.lastDigTick;
+                 }
+             }
++        // CraftBukkit start - force blockreset to client
++        } else {
++            ((EntityPlayer) this.player).netServerHandler.sendPacket(new Packet53BlockChange(i, j, k, this.world));
++            // CraftBukkit end
+         }
+ 
+         this.c = 0.0F;
+@@ -95,6 +149,19 @@ public class ItemInWorldManager {
+     }
+ 
+     public boolean c(int i, int j, int k) {
++        // CraftBukkit start
++        if (this.player instanceof EntityPlayer) {
++            org.bukkit.block.Block block = this.world.getWorld().getBlockAt(i, j, k);
++
++            BlockBreakEvent event = new BlockBreakEvent(block, (org.bukkit.entity.Player) this.player.getBukkitEntity());
++            this.world.getServer().getPluginManager().callEvent(event);
++
++            if (event.isCancelled()) {
++                return false;
++            }
++        }
++        // CraftBukkit end
++
+         int l = this.world.getTypeId(i, j, k);
+         int i1 = this.world.getData(i, j, k);
+ 
+@@ -137,6 +204,31 @@ public class ItemInWorldManager {
+     public boolean interact(EntityHuman entityhuman, World world, ItemStack itemstack, int i, int j, int k, int l) {
+         int i1 = world.getTypeId(i, j, k);
+ 
+-        return i1 > 0 && Block.byId[i1].interact(world, i, j, k, entityhuman) ? true : (itemstack == null ? false : itemstack.placeItem(entityhuman, world, i, j, k, l));
++        // CraftBukkit start - Interact
++        boolean result = false;
++        if (i1 > 0) {
++            PlayerInteractEvent event = CraftEventFactory.callPlayerInteractEvent(entityhuman, Action.RIGHT_CLICK_BLOCK, i, j, k, l, itemstack);
++            if (event.useInteractedBlock() == Event.Result.DENY) {
++                // If we denied a door from opening, we need to send a correcting update to the client, as it already opened the door.
++                if (i1 == Block.WOODEN_DOOR.id) {
++                    boolean bottom = (world.getData(i, j, k) & 8) == 0;
++                    ((EntityPlayer) entityhuman).netServerHandler.sendPacket(new Packet53BlockChange(i, j + (bottom ? 1 : -1), k, world));
++                }
++                result = (event.useItemInHand() != Event.Result.ALLOW);
++            } else {
++                result = Block.byId[i1].interact(world, i, j, k, entityhuman);
++            }
++
++            if (itemstack != null && !result) {
++                result = itemstack.placeItem(entityhuman, world, i, j, k, l);
++            }
++
++            // If we have 'true' and no explicit deny *or* an explicit allow -- run the item part of the hook
++            if (itemstack != null && ((!result && event.useItemInHand() != Event.Result.DENY) || event.useItemInHand() == Event.Result.ALLOW)) {
++                this.useItem(entityhuman, world, itemstack);
++            }
++        }
++        return result;
++        // CraftBukkit end
+     }
+ }

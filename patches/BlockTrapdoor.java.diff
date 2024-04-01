@@ -1,0 +1,45 @@
+diff --git a/original/BlockTrapdoor.java b/modified/BlockTrapdoor.java
+index 5eab479e..c8ea976f 100644
+--- a/original/BlockTrapdoor.java
++++ b/modified/BlockTrapdoor.java
+@@ -1,5 +1,7 @@
+ package net.minecraft.server;
+ 
++import org.bukkit.event.block.BlockRedstoneEvent; // CraftBukkit
++
+ public class BlockTrapdoor extends Block {
+ 
+     protected BlockTrapdoor(int i, Material material) {
+@@ -108,10 +110,21 @@ public class BlockTrapdoor extends Block {
+                 this.g(world, i, j, k, i1);
+             }
+ 
+-            if (l > 0 && Block.byId[l].isPowerSource()) {
+-                boolean flag = world.isBlockIndirectlyPowered(i, j, k);
++            // CraftBukkit start
++            if (l > 0 && Block.byId[l] != null && Block.byId[l].isPowerSource()) {
++                org.bukkit.World bworld = world.getWorld();
++                org.bukkit.block.Block block = bworld.getBlockAt(i, j, k);
++
++                int power = block.getBlockPower();
++                int oldPower = (world.getData(i, j, k) & 4) > 0 ? 15 : 0;
++
++                if (oldPower == 0 ^ power == 0) {
++                    BlockRedstoneEvent eventRedstone = new BlockRedstoneEvent(block, oldPower, power);
++                    world.getServer().getPluginManager().callEvent(eventRedstone);
+ 
+-                this.a(world, i, j, k, flag);
++                    this.a(world, i, j, k, eventRedstone.getNewCurrent() > 0);
++                }
++                // CraftBukkit end
+             }
+         }
+     }
+@@ -141,6 +154,7 @@ public class BlockTrapdoor extends Block {
+         }
+ 
+         world.setData(i, j, k, b0);
++        doPhysics(world, i, j, k, Block.REDSTONE_WIRE.id); // CraftBukkit
+     }
+ 
+     public boolean canPlace(World world, int i, int j, int k, int l) {

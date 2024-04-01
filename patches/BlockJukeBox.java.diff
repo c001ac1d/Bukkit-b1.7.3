@@ -1,0 +1,12 @@
+diff --git a/original/BlockJukeBox.java b/modified/BlockJukeBox.java
+index 4d08a71a..67f857a4 100644
+--- a/original/BlockJukeBox.java
++++ b/modified/BlockJukeBox.java
+@@ -32,6 +32,7 @@ public class BlockJukeBox extends BlockContainer {
+     public void b_(World world, int i, int j, int k) {
+         if (!world.isStatic) {
+             TileEntityRecordPlayer tileentityrecordplayer = (TileEntityRecordPlayer) world.getTileEntity(i, j, k);
++            if (tileentityrecordplayer == null) return; // CraftBukkit
+             int l = tileentityrecordplayer.a;
+ 
+             if (l != 0) {

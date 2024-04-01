@@ -1,0 +1,28 @@
+diff --git a/original/WorldGenForest.java b/modified/WorldGenForest.java
+index 40fa5729..0dbe96bc 100644
+--- a/original/WorldGenForest.java
++++ b/modified/WorldGenForest.java
+@@ -2,11 +2,23 @@ package net.minecraft.server;
+ 
+ import java.util.Random;
+ 
++import org.bukkit.BlockChangeDelegate; // CraftBukkit
++
+ public class WorldGenForest extends WorldGenerator {
+ 
+     public WorldGenForest() {}
+ 
+     public boolean a(World world, Random random, int i, int j, int k) {
++        // CraftBukkit start
++        // sk: The idea is to have (our) WorldServer implement
++        // BlockChangeDelegate and then we can implicitly cast World to
++        // WorldServer (a safe cast, AFAIK) and no code will be broken. This
++        // then allows plugins to catch manually-invoked generation events
++        return this.generate((BlockChangeDelegate) world, random, i, j, k);
++    }
++
++    public boolean generate(BlockChangeDelegate world, Random random, int i, int j, int k) {
++        // CraftBukkit end
+         int l = random.nextInt(3) + 5;
+         boolean flag = true;
+ 

@@ -1,0 +1,29 @@
+diff --git a/original/EntitySheep.java b/modified/EntitySheep.java
+index cac51ab6..cb2e3f16 100644
+--- a/original/EntitySheep.java
++++ b/modified/EntitySheep.java
+@@ -22,9 +22,23 @@ public class EntitySheep extends EntityAnimal {
+     }
+ 
+     protected void q() {
++        // CraftBukkit start - whole method
++        java.util.List<org.bukkit.inventory.ItemStack> loot = new java.util.ArrayList<org.bukkit.inventory.ItemStack>();
++
+         if (!this.isSheared()) {
+-            this.a(new ItemStack(Block.WOOL.id, 1, this.getColor()), 0.0F);
++            loot.add(new org.bukkit.inventory.ItemStack(org.bukkit.Material.WOOL, 1, (short) 0, (byte) this.getColor()));
++        }
++
++        org.bukkit.World bworld = this.world.getWorld();
++        org.bukkit.entity.Entity entity = this.getBukkitEntity();
++
++        org.bukkit.event.entity.EntityDeathEvent event = new org.bukkit.event.entity.EntityDeathEvent(entity, loot);
++        this.world.getServer().getPluginManager().callEvent(event);
++
++        for (org.bukkit.inventory.ItemStack stack: event.getDrops()) {
++            bworld.dropItemNaturally(entity.getLocation(), stack);
+         }
++        // CraftBukkit end
+     }
+ 
+     protected int j() {

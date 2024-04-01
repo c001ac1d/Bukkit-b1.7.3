@@ -1,0 +1,243 @@
+diff --git a/original/EntityMinecart.java b/modified/EntityMinecart.java
+index abdde7ae..60e1bdf0 100644
+--- a/original/EntityMinecart.java
++++ b/modified/EntityMinecart.java
+@@ -2,6 +2,18 @@ package net.minecraft.server;
+ 
+ import java.util.List;
+ 
++// CraftBukkit start
++import org.bukkit.Location;
++import org.bukkit.entity.Vehicle;
++import org.bukkit.event.vehicle.VehicleCreateEvent;
++import org.bukkit.event.vehicle.VehicleDamageEvent;
++import org.bukkit.event.vehicle.VehicleDestroyEvent;
++import org.bukkit.event.vehicle.VehicleEnterEvent;
++import org.bukkit.event.vehicle.VehicleEntityCollisionEvent;
++import org.bukkit.event.vehicle.VehicleMoveEvent;
++import org.bukkit.event.vehicle.VehicleUpdateEvent;
++// CraftBukkit end
++
+ public class EntityMinecart extends Entity implements IInventory {
+ 
+     private ItemStack[] items;
+@@ -21,9 +33,24 @@ public class EntityMinecart extends Entity implements IInventory {
+     private double o;
+     private double p;
+ 
++    // CraftBukkit start
++    public boolean slowWhenEmpty = true;
++    public double derailedX = 0.5;
++    public double derailedY = 0.5;
++    public double derailedZ = 0.5;
++    public double flyingX = 0.95;
++    public double flyingY = 0.95;
++    public double flyingZ = 0.95;
++    public double maxSpeed = 0.4D;
++
++    public ItemStack[] getContents() {
++        return this.items;
++    }
++    // CraftBukkit end
++
+     public EntityMinecart(World world) {
+         super(world);
+-        this.items = new ItemStack[36];
++        this.items = new ItemStack[27]; // CraftBukkit
+         this.damage = 0;
+         this.b = 0;
+         this.c = 1;
+@@ -61,6 +88,8 @@ public class EntityMinecart extends Entity implements IInventory {
+         this.lastY = d1;
+         this.lastZ = d2;
+         this.type = i;
++
++        this.world.getServer().getPluginManager().callEvent(new VehicleCreateEvent((Vehicle) this.getBukkitEntity())); // CraftBukkit
+     }
+ 
+     public double m() {
+@@ -69,6 +98,20 @@ public class EntityMinecart extends Entity implements IInventory {
+ 
+     public boolean damageEntity(Entity entity, int i) {
+         if (!this.world.isStatic && !this.dead) {
++            // CraftBukkit start
++            Vehicle vehicle = (Vehicle) this.getBukkitEntity();
++            org.bukkit.entity.Entity passenger = (entity == null) ? null : entity.getBukkitEntity();
++
++            VehicleDamageEvent event = new VehicleDamageEvent(vehicle, passenger, i);
++            this.world.getServer().getPluginManager().callEvent(event);
++
++            if (event.isCancelled()) {
++                return true;
++            }
++
++            i = event.getDamage();
++            // CraftBukkit end
++
+             this.c = -this.c;
+             this.b = 10;
+             this.af();
+@@ -78,6 +121,16 @@ public class EntityMinecart extends Entity implements IInventory {
+                     this.passenger.mount(this);
+                 }
+ 
++                // CraftBukkit start
++                VehicleDestroyEvent destroyEvent = new VehicleDestroyEvent(vehicle, passenger);
++                this.world.getServer().getPluginManager().callEvent(destroyEvent);
++
++                if (destroyEvent.isCancelled()) {
++                    this.damage = 40; // Maximize damage so this doesn't get triggered again right away
++                    return true;
++                }
++                // CraftBukkit end
++
+                 this.die();
+                 this.a(Item.MINECART.id, 1, 0.0F);
+                 if (this.type == 1) {
+@@ -158,6 +211,14 @@ public class EntityMinecart extends Entity implements IInventory {
+     }
+ 
+     public void m_() {
++        // CraftBukkit start
++        double prevX = this.locX;
++        double prevY = this.locY;
++        double prevZ = this.locZ;
++        float prevYaw = this.yaw;
++        float prevPitch = this.pitch;
++        // CraftBukkit end
++
+         if (this.b > 0) {
+             --this.b;
+         }
+@@ -204,7 +265,8 @@ public class EntityMinecart extends Entity implements IInventory {
+                 --j;
+             }
+ 
+-            double d4 = 0.4D;
++            // CraftBukkit
++            double d4 = this.maxSpeed;
+             boolean flag = false;
+ 
+             d0 = 0.0078125D;
+@@ -335,7 +397,8 @@ public class EntityMinecart extends Entity implements IInventory {
+                     this.setPosition(this.locX, this.locY + (double) aint[1][1], this.locZ);
+                 }
+ 
+-                if (this.passenger != null) {
++                // CraftBukkit
++                if (this.passenger != null || !this.slowWhenEmpty) {
+                     this.motX *= 0.996999979019165D;
+                     this.motY *= 0.0D;
+                     this.motZ *= 0.996999979019165D;
+@@ -444,16 +507,20 @@ public class EntityMinecart extends Entity implements IInventory {
+                 }
+ 
+                 if (this.onGround) {
+-                    this.motX *= 0.5D;
+-                    this.motY *= 0.5D;
+-                    this.motZ *= 0.5D;
++                    // CraftBukkit start
++                    this.motX *= this.derailedX;
++                    this.motY *= this.derailedY;
++                    this.motZ *= this.derailedZ;
++                    // CraftBukkit start
+                 }
+ 
+                 this.move(this.motX, this.motY, this.motZ);
+                 if (!this.onGround) {
+-                    this.motX *= 0.949999988079071D;
+-                    this.motY *= 0.949999988079071D;
+-                    this.motZ *= 0.949999988079071D;
++                    // CraftBukkit start
++                    this.motX *= this.flyingX;
++                    this.motY *= this.flyingY;
++                    this.motZ *= this.flyingZ;
++                    // CraftBukkit start
+                 }
+             }
+ 
+@@ -484,6 +551,20 @@ public class EntityMinecart extends Entity implements IInventory {
+             }
+ 
+             this.c(this.yaw, this.pitch);
++
++            // CraftBukkit start
++            org.bukkit.World bworld = this.world.getWorld();
++            Location from = new Location(bworld, prevX, prevY, prevZ, prevYaw, prevPitch);
++            Location to = new Location(bworld, this.locX, this.locY, this.locZ, this.yaw, this.pitch);
++            Vehicle vehicle = (Vehicle) this.getBukkitEntity();
++
++            this.world.getServer().getPluginManager().callEvent(new VehicleUpdateEvent(vehicle));
++
++            if (!from.equals(to)) {
++                this.world.getServer().getPluginManager().callEvent(new VehicleMoveEvent(vehicle, from, to));
++            }
++            // CraftBukkit end
++
+             List list = this.world.b((Entity) this, this.boundingBox.b(0.20000000298023224D, 0.0D, 0.20000000298023224D));
+ 
+             if (list != null && list.size() > 0) {
+@@ -497,6 +578,7 @@ public class EntityMinecart extends Entity implements IInventory {
+             }
+ 
+             if (this.passenger != null && this.passenger.dead) {
++                this.passenger.vehicle = null; // CraftBukkit
+                 this.passenger = null;
+             }
+ 
+@@ -625,15 +707,35 @@ public class EntityMinecart extends Entity implements IInventory {
+     public void collide(Entity entity) {
+         if (!this.world.isStatic) {
+             if (entity != this.passenger) {
++                // CraftBukkit start
++                Vehicle vehicle = (Vehicle) this.getBukkitEntity();
++                org.bukkit.entity.Entity hitEntity = (entity == null) ? null : entity.getBukkitEntity();
++
++                VehicleEntityCollisionEvent collisionEvent = new VehicleEntityCollisionEvent(vehicle, hitEntity);
++                this.world.getServer().getPluginManager().callEvent(collisionEvent);
++
++                if (collisionEvent.isCancelled()) {
++                    return;
++                }
++
+                 if (entity instanceof EntityLiving && !(entity instanceof EntityHuman) && this.type == 0 && this.motX * this.motX + this.motZ * this.motZ > 0.01D && this.passenger == null && entity.vehicle == null) {
+-                    entity.mount(this);
++                    if (!collisionEvent.isPickupCancelled()) {
++                        VehicleEnterEvent enterEvent = new VehicleEnterEvent(vehicle, hitEntity);
++                        this.world.getServer().getPluginManager().callEvent(enterEvent);
++
++                        if (!enterEvent.isCancelled()) {
++                            entity.mount(this);
++                        }
++                    }
+                 }
++                // CraftBukkit end
+ 
+                 double d0 = entity.locX - this.locX;
+                 double d1 = entity.locZ - this.locZ;
+                 double d2 = d0 * d0 + d1 * d1;
+ 
+-                if (d2 >= 9.999999747378752E-5D) {
++                // CraftBukkit - Collision
++                if (d2 >= 9.999999747378752E-5D && !collisionEvent.isCollisionCancelled()) {
+                     d2 = (double) MathHelper.a(d2);
+                     d0 /= d2;
+                     d1 /= d2;
+@@ -748,6 +850,17 @@ public class EntityMinecart extends Entity implements IInventory {
+             }
+ 
+             if (!this.world.isStatic) {
++                // CraftBukkit start
++                org.bukkit.entity.Entity player = (entityhuman == null) ? null : entityhuman.getBukkitEntity();
++
++                VehicleEnterEvent event = new VehicleEnterEvent((Vehicle) this.getBukkitEntity(), player);
++                this.world.getServer().getPluginManager().callEvent(event);
++
++                if (event.isCancelled()) {
++                    return true;
++                }
++                // CraftBukkit end
++
+                 entityhuman.mount(this);
+             }
+         } else if (this.type == 1) {

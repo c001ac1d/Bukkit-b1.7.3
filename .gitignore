@@ -35,3 +35,5 @@ modified/*
 original/*
 modified
 original
+src/main/java/net/minecraft/server
+src/main/java/net/minecraft/server/*

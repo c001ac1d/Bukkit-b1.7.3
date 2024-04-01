@@ -1,0 +1,94 @@
+diff --git a/original/BlockPiston.java b/modified/BlockPiston.java
+index 34d56162..1c27571a 100644
+--- a/original/BlockPiston.java
++++ b/modified/BlockPiston.java
+@@ -2,6 +2,11 @@ package net.minecraft.server;
+ 
+ import java.util.ArrayList;
+ 
++// CraftBukkit start
++import org.bukkit.event.block.BlockPistonRetractEvent;
++import org.bukkit.event.block.BlockPistonExtendEvent;
++// CraftBukkit end
++
+ public class BlockPiston extends Block {
+ 
+     private boolean a;
+@@ -56,11 +61,34 @@ public class BlockPiston extends Block {
+ 
+         if (l != 7) {
+             if (flag && !d(l)) {
+-                if (h(world, i, j, k, i1)) {
++                // CraftBukkit start
++                int length = h(world, i, j, k, i1);
++                if (length >= 0) {
++                    org.bukkit.block.Block block = world.getWorld().getBlockAt(i, j, k);
++
++                    BlockPistonExtendEvent event = new BlockPistonExtendEvent(block, length);
++                    world.getServer().getPluginManager().callEvent(event);
++
++                    if (event.isCancelled()) {
++                        return;
++                    }
++                    // CraftBukkit end
++
+                     world.setRawData(i, j, k, i1 | 8);
+                     world.playNote(i, j, k, 0, i1);
+                 }
+             } else if (!flag && d(l)) {
++                // CraftBukkit start
++                org.bukkit.block.Block block = world.getWorld().getBlockAt(i, j, k);
++
++                BlockPistonRetractEvent event = new BlockPistonRetractEvent(block);
++                world.getServer().getPluginManager().callEvent(event);
++
++                if (event.isCancelled()) {
++                    return;
++                }
++                // CraftBukkit end
++
+                 world.setRawData(i, j, k, i1);
+                 world.playNote(i, j, k, 1, i1);
+             }
+@@ -230,7 +258,8 @@ public class BlockPiston extends Block {
+         }
+     }
+ 
+-    private static boolean h(World world, int i, int j, int k, int l) {
++    // CraftBukkkit boolean -> int
++    private static int h(World world, int i, int j, int k, int l) {
+         int i1 = i + PistonBlockTextures.b[l];
+         int j1 = j + PistonBlockTextures.c[l];
+         int k1 = k + PistonBlockTextures.d[l];
+@@ -239,19 +268,19 @@ public class BlockPiston extends Block {
+         while (true) {
+             if (l1 < 13) {
+                 if (j1 <= 0 || j1 >= 127) {
+-                    return false;
++                    return -1; // CraftBukkit
+                 }
+ 
+                 int i2 = world.getTypeId(i1, j1, k1);
+ 
+                 if (i2 != 0) {
+                     if (!a(i2, world, i1, j1, k1, true)) {
+-                        return false;
++                        return -1; // CraftBukkit
+                     }
+ 
+                     if (Block.byId[i2].e() != 1) {
+                         if (l1 == 12) {
+-                            return false;
++                            return -1; // CraftBukkit
+                         }
+ 
+                         i1 += PistonBlockTextures.b[l];
+@@ -263,7 +292,7 @@ public class BlockPiston extends Block {
+                 }
+             }
+ 
+-            return true;
++            return l1; // CraftBukkit
+         }
+     }
+ 

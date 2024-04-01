@@ -1,0 +1,62 @@
+diff --git a/original/EntityMonster.java b/modified/EntityMonster.java
+index e56a9269..abe59e94 100644
+--- a/original/EntityMonster.java
++++ b/modified/EntityMonster.java
+@@ -1,5 +1,12 @@
+ package net.minecraft.server;
+ 
++// CraftBukkit start
++import org.bukkit.craftbukkit.entity.CraftEntity;
++import org.bukkit.event.entity.EntityDamageByEntityEvent;
++import org.bukkit.event.entity.EntityDamageEvent;
++import org.bukkit.event.entity.EntityTargetEvent;
++// CraftBukkit end
++
+ public class EntityMonster extends EntityCreature implements IMonster {
+ 
+     protected int damage = 2;
+@@ -36,7 +43,20 @@ public class EntityMonster extends EntityCreature implements IMonster {
+         if (super.damageEntity(entity, i)) {
+             if (this.passenger != entity && this.vehicle != entity) {
+                 if (entity != this) {
+-                    this.target = entity;
++                    // CraftBukkit start
++                    org.bukkit.entity.Entity bukkitTarget = entity == null ? null : entity.getBukkitEntity();
++
++                    EntityTargetEvent event = new EntityTargetEvent(this.getBukkitEntity(), bukkitTarget, EntityTargetEvent.TargetReason.TARGET_ATTACKED_ENTITY);
++                    this.world.getServer().getPluginManager().callEvent(event);
++
++                    if (!event.isCancelled()) {
++                        if (event.getTarget() == null) {
++                            this.target = null;
++                        } else {
++                            this.target = ((CraftEntity) event.getTarget()).getHandle();
++                        }
++                    }
++                    // CraftBukkit end
+                 }
+ 
+                 return true;
+@@ -51,6 +71,22 @@ public class EntityMonster extends EntityCreature implements IMonster {
+     protected void a(Entity entity, float f) {
+         if (this.attackTicks <= 0 && f < 2.0F && entity.boundingBox.e > this.boundingBox.b && entity.boundingBox.b < this.boundingBox.e) {
+             this.attackTicks = 20;
++            // CraftBukkit start - this is still duplicated here and EntityHuman because it's possible for lastDamage EntityMonster
++            // to damage another EntityMonster, and we want to catch those events.
++            // This does not fire events for slime attacks, av they're not lastDamage EntityMonster.
++            if (entity instanceof EntityLiving && !(entity instanceof EntityHuman)) {
++                org.bukkit.entity.Entity damagee = (entity == null) ? null : entity.getBukkitEntity();
++
++                EntityDamageByEntityEvent event = new EntityDamageByEntityEvent(this.getBukkitEntity(), damagee, EntityDamageEvent.DamageCause.ENTITY_ATTACK, this.damage);
++                this.world.getServer().getPluginManager().callEvent(event);
++
++                if (!event.isCancelled()) {
++                    entity.damageEntity(this, event.getDamage());
++                }
++                return;
++            }
++            // CraftBukkit end
++
+             entity.damageEntity(this, this.damage);
+         }
+     }

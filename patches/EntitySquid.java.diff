@@ -1,0 +1,40 @@
+diff --git a/original/EntitySquid.java b/modified/EntitySquid.java
+index 11f69957..f19f9603 100644
+--- a/original/EntitySquid.java
++++ b/modified/EntitySquid.java
+@@ -1,5 +1,7 @@
+ package net.minecraft.server;
+ 
++import org.bukkit.event.entity.EntityDeathEvent; // CraftBukkit
++
+ public class EntitySquid extends EntityWaterAnimal {
+ 
+     public float a = 0.0F;
+@@ -53,11 +55,24 @@ public class EntitySquid extends EntityWaterAnimal {
+     }
+ 
+     protected void q() {
+-        int i = this.random.nextInt(3) + 1;
++        // CraftBukkit start - whole method
++        java.util.List<org.bukkit.inventory.ItemStack> loot = new java.util.ArrayList<org.bukkit.inventory.ItemStack>();
++
++        int count = this.random.nextInt(3) + 1;
++        if (count > 0) {
++            loot.add(new org.bukkit.inventory.ItemStack(org.bukkit.Material.INK_SACK, count));
++        }
++
++        org.bukkit.World bworld = this.world.getWorld();
++        org.bukkit.entity.Entity entity = this.getBukkitEntity();
++
++        EntityDeathEvent event = new EntityDeathEvent(entity, loot);
++        this.world.getServer().getPluginManager().callEvent(event);
+ 
+-        for (int j = 0; j < i; ++j) {
+-            this.a(new ItemStack(Item.INK_SACK, 1, 0), 0.0F);
++        for (org.bukkit.inventory.ItemStack stack : event.getDrops()) {
++            bworld.dropItemNaturally(entity.getLocation(), stack);
+         }
++        // CraftBukkit end
+     }
+ 
+     public boolean a(EntityHuman entityhuman) {

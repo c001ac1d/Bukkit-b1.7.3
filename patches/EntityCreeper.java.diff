@@ -1,0 +1,65 @@
+diff --git a/original/EntityCreeper.java b/modified/EntityCreeper.java
+index 622ae9cb..31743fe1 100644
+--- a/original/EntityCreeper.java
++++ b/modified/EntityCreeper.java
+@@ -1,5 +1,11 @@
+ package net.minecraft.server;
+ 
++// CraftBukkit start
++import org.bukkit.craftbukkit.entity.CraftEntity;
++import org.bukkit.event.entity.ExplosionPrimeEvent;
++import org.bukkit.event.entity.CreeperPowerEvent;
++// CraftBukkit end
++
+ public class EntityCreeper extends EntityMonster {
+ 
+     int fuseTicks;
+@@ -102,13 +108,19 @@ public class EntityCreeper extends EntityMonster {
+                 this.e(1);
+                 ++this.fuseTicks;
+                 if (this.fuseTicks >= 30) {
+-                    if (this.isPowered()) {
+-                        this.world.a(this, this.locX, this.locY, this.locZ, 6.0F);
++                    // CraftBukkit start
++                    float radius = this.isPowered() ? 6.0F : 3.0F;
++
++                    ExplosionPrimeEvent event = new ExplosionPrimeEvent(CraftEntity.getEntity(this.world.getServer(), this), radius, false);
++                    this.world.getServer().getPluginManager().callEvent(event);
++
++                    if (!event.isCancelled()) {
++                        this.world.createExplosion(this, this.locX, this.locY, this.locZ, event.getRadius(), event.getFire());
++                        this.die();
+                     } else {
+-                        this.world.a(this, this.locX, this.locY, this.locZ, 3.0F);
++                        this.fuseTicks = 0;
+                     }
+-
+-                    this.die();
++                    // CraftBukkit end
+                 }
+ 
+                 this.e = true;
+@@ -134,6 +146,23 @@ public class EntityCreeper extends EntityMonster {
+ 
+     public void a(EntityWeatherStorm entityweatherstorm) {
+         super.a(entityweatherstorm);
++
++        // CraftBukkit start
++        CreeperPowerEvent event = new CreeperPowerEvent(this.getBukkitEntity(), entityweatherstorm.getBukkitEntity(), CreeperPowerEvent.PowerCause.LIGHTNING);
++        this.world.getServer().getPluginManager().callEvent(event);
++
++        if (event.isCancelled()) {
++            return;
++        }
++
++        this.setPowered(true);
++    }
++
++    public void setPowered(boolean powered) {
++        if (!powered) {
++            this.datawatcher.watch(17, Byte.valueOf((byte) 0));
++        } else
++        // CraftBukkit end
+         this.datawatcher.watch(17, Byte.valueOf((byte) 1));
+     }
+ }

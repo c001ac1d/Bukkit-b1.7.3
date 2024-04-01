@@ -1,0 +1,36 @@
+diff --git a/original/EntitySpider.java b/modified/EntitySpider.java
+index 895a9f61..b1e77d3a 100644
+--- a/original/EntitySpider.java
++++ b/modified/EntitySpider.java
+@@ -1,5 +1,10 @@
+ package net.minecraft.server;
+ 
++// CraftBukkit start
++import org.bukkit.craftbukkit.entity.CraftEntity;
++import org.bukkit.event.entity.EntityTargetEvent;
++// CraftBukkit end
++
+ public class EntitySpider extends EntityMonster {
+ 
+     public EntitySpider(World world) {
+@@ -45,7 +50,19 @@ public class EntitySpider extends EntityMonster {
+         float f1 = this.c(1.0F);
+ 
+         if (f1 > 0.5F && this.random.nextInt(100) == 0) {
+-            this.target = null;
++            // CraftBukkit start
++            EntityTargetEvent event = new EntityTargetEvent(this.getBukkitEntity(), null, EntityTargetEvent.TargetReason.FORGOT_TARGET);
++            this.world.getServer().getPluginManager().callEvent(event);
++
++            if (!event.isCancelled()) {
++                if (event.getTarget() == null) {
++                    this.target = null;
++                } else {
++                    this.target = ((CraftEntity) event.getTarget()).getHandle();
++                }
++                return;
++            }
++            // CraftBukkit end
+         } else {
+             if (f > 2.0F && f < 6.0F && this.random.nextInt(10) == 0) {
+                 if (this.onGround) {

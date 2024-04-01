@@ -1,0 +1,103 @@
+diff --git a/original/WorldMap.java b/modified/WorldMap.java
+index 712abee0..4e93ed3a 100644
+--- a/original/WorldMap.java
++++ b/modified/WorldMap.java
+@@ -5,6 +5,15 @@ import java.util.HashMap;
+ import java.util.List;
+ import java.util.Map;
+ 
++// CraftBukkit start
++import java.util.UUID;
++
++import org.bukkit.Bukkit;
++import org.bukkit.craftbukkit.CraftServer;
++import org.bukkit.craftbukkit.CraftWorld;
++import org.bukkit.craftbukkit.map.CraftMapView;
++// CraftBukkit end
++
+ public class WorldMap extends WorldMapBase {
+ 
+     public int b;
+@@ -17,12 +26,45 @@ public class WorldMap extends WorldMapBase {
+     private Map j = new HashMap();
+     public List i = new ArrayList();
+ 
++    // CraftBukkit start
++    public final CraftMapView mapView;
++    private CraftServer server;
++    private UUID uniqueId = null;
++    // CraftBukkit end
++
+     public WorldMap(String s) {
+         super(s);
++        // CraftBukkit start
++        mapView = new CraftMapView(this);
++        server = (CraftServer) Bukkit.getServer();
++        // CraftBukkit end
+     }
+ 
+     public void a(NBTTagCompound nbttagcompound) {
+-        this.map = nbttagcompound.c("dimension");
++        // CraftBukkit start
++        byte dimension = nbttagcompound.c("dimension");
++
++        if (dimension >= 10) {
++            long least = nbttagcompound.getLong("UUIDLeast");
++            long most = nbttagcompound.getLong("UUIDMost");
++
++            if (least != 0L && most != 0L) {
++                this.uniqueId = new UUID(most, least);
++
++                CraftWorld world = (CraftWorld) server.getWorld(this.uniqueId);
++                // Check if the stored world details are correct.
++                if (world == null) {
++                    /* All Maps which do not have their valid world loaded are set to a dimension which hopefully won't be reached.
++                       This is to prevent them being corrupted with the wrong map data. */
++                    dimension = 127;
++                } else {
++                    dimension = (byte) world.getHandle().dimension;
++                }
++            }
++        }
++
++        this.map = dimension;
++        // CraftBukkit end
+         this.b = nbttagcompound.e("xCenter");
+         this.c = nbttagcompound.e("zCenter");
+         this.e = nbttagcompound.c("scale");
+@@ -63,6 +105,25 @@ public class WorldMap extends WorldMapBase {
+     }
+ 
+     public void b(NBTTagCompound nbttagcompound) {
++        // CraftBukkit start
++        if (this.map >= 10) {
++            if (this.uniqueId == null) {
++                for (org.bukkit.World world : server.getWorlds()) {
++                    CraftWorld cWorld = (CraftWorld) world;
++                    if (cWorld.getHandle().dimension == this.map) {
++                        this.uniqueId = cWorld.getUID();
++                        break;
++                    }
++                }
++            }
++            /* Perform a second check to see if a matching world was found, this is a necessary
++               change incase Maps are forcefully unlinked from a World and lack a UID.*/
++            if (this.uniqueId != null) {
++                nbttagcompound.setLong("UUIDLeast", this.uniqueId.getLeastSignificantBits());
++                nbttagcompound.setLong("UUIDMost", this.uniqueId.getMostSignificantBits());
++            }
++        }
++        // CraftBukkit end
+         nbttagcompound.a("dimension", this.map);
+         nbttagcompound.a("xCenter", this.b);
+         nbttagcompound.a("zCenter", this.c);
+@@ -95,7 +156,8 @@ public class WorldMap extends WorldMapBase {
+                     byte b2 = 0;
+                     byte b3 = (byte) ((int) ((double) (f * 2.0F) + 0.5D));
+                     byte b4 = (byte) ((int) ((double) (f1 * 2.0F) + 0.5D));
+-                    byte b5 = (byte) ((int) ((double) (entityhuman.yaw * 16.0F / 360.0F) + 0.5D));
++                    // CraftBukkit
++                    byte b5 = (byte) ((int) ((double) (worldmaphumantracker1.trackee.yaw * 16.0F / 360.0F) + 0.5D));
+ 
+                     if (this.map < 0) {
+                         int j = this.g / 10;

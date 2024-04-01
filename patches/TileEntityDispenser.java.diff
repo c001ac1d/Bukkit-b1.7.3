@@ -1,0 +1,45 @@
+diff --git a/original/TileEntityDispenser.java b/modified/TileEntityDispenser.java
+index 61a97187..7a9aab7a 100644
+--- a/original/TileEntityDispenser.java
++++ b/modified/TileEntityDispenser.java
+@@ -7,6 +7,12 @@ public class TileEntityDispenser extends TileEntity implements IInventory {
+     private ItemStack[] items = new ItemStack[9];
+     private Random b = new Random();
+ 
++    // CraftBukkit start
++    public ItemStack[] getContents() {
++        return this.items;
++    }
++    // CraftBukkit end
++
+     public TileEntityDispenser() {}
+ 
+     public int getSize() {
+@@ -40,16 +46,26 @@ public class TileEntityDispenser extends TileEntity implements IInventory {
+         }
+     }
+ 
+-    public ItemStack b() {
++    // CraftBukkit - change signature
++    public int findDispenseSlot() {
+         int i = -1;
+         int j = 1;
+ 
+         for (int k = 0; k < this.items.length; ++k) {
+             if (this.items[k] != null && this.b.nextInt(j++) == 0) {
++                if (this.items[k].count == 0) continue; // CraftBukkit
+                 i = k;
+             }
+         }
+ 
++        // CraftBukkit start
++        return i;
++    }
++
++    public ItemStack b() {
++        int i = this.findDispenseSlot();
++        // CraftBukkit end
++
+         if (i >= 0) {
+             return this.splitStack(i, 1);
+         } else {

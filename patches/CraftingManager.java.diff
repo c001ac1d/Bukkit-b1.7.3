@@ -1,0 +1,22 @@
+diff --git a/original/CraftingManager.java b/modified/CraftingManager.java
+index ef975168..78ca3c4f 100644
+--- a/original/CraftingManager.java
++++ b/modified/CraftingManager.java
+@@ -83,7 +83,7 @@ public class CraftingManager {
+         System.out.println(this.b.size() + " recipes");
+     }
+ 
+-    void registerShapedRecipe(ItemStack itemstack, Object... aobject) {
++    public void registerShapedRecipe(ItemStack itemstack, Object... aobject) { // CraftBukkit - default -> public
+         String s = "";
+         int i = 0;
+         int j = 0;
+@@ -141,7 +141,7 @@ public class CraftingManager {
+         this.b.add(new ShapedRecipes(j, k, aitemstack, itemstack));
+     }
+ 
+-    void registerShapelessRecipe(ItemStack itemstack, Object... aobject) {
++    public void registerShapelessRecipe(ItemStack itemstack, Object... aobject) { // CraftBukkit - default -> public
+         ArrayList arraylist = new ArrayList();
+         Object[] aobject1 = aobject;
+         int i = aobject.length;

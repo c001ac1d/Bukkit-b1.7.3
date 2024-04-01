@@ -1,0 +1,11 @@
+diff --git a/original/IInventory.java b/modified/IInventory.java
+index 1d85fc0e..bb6ce82f 100644
+--- a/original/IInventory.java
++++ b/modified/IInventory.java
+@@ -17,4 +17,6 @@ public interface IInventory {
+     void update();
+ 
+     boolean a_(EntityHuman entityhuman);
++
++    public abstract ItemStack[] getContents(); // CraftBukkit
+ }

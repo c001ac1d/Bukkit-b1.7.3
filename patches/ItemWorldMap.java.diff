@@ -1,0 +1,60 @@
+diff --git a/original/ItemWorldMap.java b/modified/ItemWorldMap.java
+index 3e2d9d3d..9ec729c2 100644
+--- a/original/ItemWorldMap.java
++++ b/modified/ItemWorldMap.java
+@@ -1,5 +1,10 @@
+ package net.minecraft.server;
+ 
++// CraftBukkit start
++import org.bukkit.Bukkit;
++import org.bukkit.event.server.MapInitializeEvent;
++// CraftBukkit end
++
+ public class ItemWorldMap extends ItemWorldMapBase {
+ 
+     protected ItemWorldMap(int i) {
+@@ -22,13 +27,18 @@ public class ItemWorldMap extends ItemWorldMapBase {
+             worldmap.map = (byte) world.worldProvider.dimension;
+             worldmap.a();
+             world.a(s, (WorldMapBase) worldmap);
++            
++            // CraftBukkit start
++            MapInitializeEvent event = new MapInitializeEvent(worldmap.mapView);
++            Bukkit.getServer().getPluginManager().callEvent(event);
++            // CraftBukkit end
+         }
+ 
+         return worldmap;
+     }
+ 
+     public void a(World world, Entity entity, WorldMap worldmap) {
+-        if (world.worldProvider.dimension == worldmap.map) {
++        if (((WorldServer) world).dimension == worldmap.map) { // CraftBukkit
+             short short1 = 128;
+             short short2 = 128;
+             int i = 1 << worldmap.e;
+@@ -62,6 +72,7 @@ public class ItemWorldMap extends ItemWorldMapBase {
+                             byte b2 = 0;
+                             int[] aint = new int[256];
+                             Chunk chunk = world.getChunkAtWorldCoords(i3, j3);
++                            if (chunk.isEmpty()) continue; // CraftBukkit
+                             int k3 = i3 & 15;
+                             int l3 = j3 & 15;
+                             int i4 = 0;
+@@ -101,6 +112,7 @@ public class ItemWorldMap extends ItemWorldMapBase {
+ 
+                                                 if (!flag1) {
+                                                     --k4;
++                                                    if (k4 <= 0) break; // CraftBukkit
+                                                     j5 = chunk.getTypeId(l4 + k3, k4 - 1, j4 + l3);
+                                                 }
+                                             } while (!flag1);
+@@ -222,7 +234,7 @@ public class ItemWorldMap extends ItemWorldMapBase {
+         worldmap.b = MathHelper.floor(entityhuman.locX);
+         worldmap.c = MathHelper.floor(entityhuman.locZ);
+         worldmap.e = 3;
+-        worldmap.map = (byte) world.worldProvider.dimension;
++        worldmap.map = (byte) ((WorldServer) world).dimension; // CraftBukkit
+         worldmap.a();
+     }
+ 

@@ -1,0 +1,55 @@
+diff --git a/original/ItemDoor.java b/modified/ItemDoor.java
+index 78fd9b10..5e9d921b 100644
+--- a/original/ItemDoor.java
++++ b/modified/ItemDoor.java
+@@ -1,5 +1,11 @@
+ package net.minecraft.server;
+ 
++// CraftBukkit start
++import org.bukkit.craftbukkit.block.CraftBlockState;
++import org.bukkit.craftbukkit.event.CraftEventFactory;
++import org.bukkit.event.block.BlockPlaceEvent;
++// CraftBukkit end
++
+ public class ItemDoor extends Item {
+ 
+     private Material a;
+@@ -14,6 +20,8 @@ public class ItemDoor extends Item {
+         if (l != 1) {
+             return false;
+         } else {
++            int clickedX = i, clickedY = j, clickedZ = k; // CraftBukkit
++
+             ++j;
+             Block block;
+ 
+@@ -63,12 +71,27 @@ public class ItemDoor extends Item {
+                     i1 += 4;
+                 }
+ 
++                CraftBlockState blockState = CraftBlockState.getBlockState(world, i, j, k); // CraftBukkit
++
+                 world.suppressPhysics = true;
+                 world.setTypeIdAndData(i, j, k, block.id, i1);
++
++                // CraftBukkit start - bed
++                world.suppressPhysics = false;
++                world.applyPhysics(i, j, k, Block.REDSTONE_WIRE.id);
++                BlockPlaceEvent event = CraftEventFactory.callBlockPlaceEvent(world, entityhuman, blockState, clickedX, clickedY, clickedZ, block);
++
++                if (event.isCancelled() || !event.canBuild()) {
++                    event.getBlockPlaced().setTypeIdAndData(blockState.getTypeId(), blockState.getRawData(), false);
++                    return false;
++                }
++
++                world.suppressPhysics = true;
++                // CraftBukkit end
+                 world.setTypeIdAndData(i, j + 1, k, block.id, i1 + 8);
+                 world.suppressPhysics = false;
+-                world.applyPhysics(i, j, k, block.id);
+-                world.applyPhysics(i, j + 1, k, block.id);
++                // world.applyPhysics(i, j, k, block.id); // CraftBukkit - moved up
++                world.applyPhysics(i, j + 1, k, Block.REDSTONE_WIRE.id);
+                 --itemstack.count;
+                 return true;
+             }

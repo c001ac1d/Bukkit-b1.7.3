@@ -1,0 +1,73 @@
+diff --git a/original/EntityCreature.java b/modified/EntityCreature.java
+index 5877ffb2..58f98396 100644
+--- a/original/EntityCreature.java
++++ b/modified/EntityCreature.java
+@@ -1,9 +1,15 @@
+ package net.minecraft.server;
+ 
++// CraftBukkit start
++import org.bukkit.craftbukkit.entity.CraftEntity;
++import org.bukkit.craftbukkit.TrigMath;
++import org.bukkit.event.entity.EntityTargetEvent;
++// CraftBukkit end
++
+ public class EntityCreature extends EntityLiving {
+ 
+-    private PathEntity pathEntity;
+-    protected Entity target;
++    public PathEntity pathEntity; // CraftBukkit - public
++    public Entity target; // CraftBukkit - public
+     protected boolean e = false;
+ 
+     public EntityCreature(World world) {
+@@ -19,12 +25,38 @@ public class EntityCreature extends EntityLiving {
+         float f = 16.0F;
+ 
+         if (this.target == null) {
+-            this.target = this.findTarget();
++            // CraftBukkit start
++            Entity target = this.findTarget();
++            if (target != null) {
++                EntityTargetEvent event = new EntityTargetEvent(this.getBukkitEntity(), target.getBukkitEntity(), EntityTargetEvent.TargetReason.CLOSEST_PLAYER);
++                this.world.getServer().getPluginManager().callEvent(event);
++
++                if (!event.isCancelled()) {
++                    if (event.getTarget() == null) {
++                        this.target = null;
++                    } else {
++                        this.target = ((CraftEntity) event.getTarget()).getHandle();
++                    }
++                }
++            }
++            // CraftBukkit end
++
+             if (this.target != null) {
+                 this.pathEntity = this.world.findPath(this, this.target, f);
+             }
+         } else if (!this.target.T()) {
+-            this.target = null;
++            // CraftBukkit start
++            EntityTargetEvent event = new EntityTargetEvent(this.getBukkitEntity(), null, EntityTargetEvent.TargetReason.TARGET_DIED);
++            this.world.getServer().getPluginManager().callEvent(event);
++
++            if (!event.isCancelled()) {
++                if (event.getTarget() == null) {
++                    this.target = null;
++                } else {
++                    this.target = ((CraftEntity) event.getTarget()).getHandle();
++                }
++            }
++            // CraftBukkit end
+         } else {
+             float f1 = this.target.f(this);
+ 
+@@ -65,7 +97,8 @@ public class EntityCreature extends EntityLiving {
+                 double d1 = vec3d.a - this.locX;
+                 double d2 = vec3d.c - this.locZ;
+                 double d3 = vec3d.b - (double) i;
+-                float f2 = (float) (Math.atan2(d2, d1) * 180.0D / 3.1415927410125732D) - 90.0F;
++                // CraftBukkit - Math -> TrigMath
++                float f2 = (float) (TrigMath.atan2(d2, d1) * 180.0D / 3.1415927410125732D) - 90.0F;
+                 float f3 = f2 - this.yaw;
+ 
+                 for (this.aA = this.aE; f3 < -180.0F; f3 += 360.0F) {

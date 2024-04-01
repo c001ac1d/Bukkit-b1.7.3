@@ -1,0 +1,28 @@
+diff --git a/original/WorldGenTaiga2.java b/modified/WorldGenTaiga2.java
+index 9bbc5f50..d384a64e 100644
+--- a/original/WorldGenTaiga2.java
++++ b/modified/WorldGenTaiga2.java
+@@ -2,11 +2,23 @@ package net.minecraft.server;
+ 
+ import java.util.Random;
+ 
++import org.bukkit.BlockChangeDelegate; // CraftBukkit
++
+ public class WorldGenTaiga2 extends WorldGenerator {
+ 
+     public WorldGenTaiga2() {}
+ 
+     public boolean a(World world, Random random, int i, int j, int k) {
++        // CraftBukkit start
++        // sk: The idea is to have (our) WorldServer implement
++        // BlockChangeDelegate and then we can implicitly cast World to
++        // WorldServer (a safe cast, AFAIK) and no code will be broken. This
++        // then allows plugins to catch manually-invoked generation events
++        return this.generate((BlockChangeDelegate) world, random, i, j, k);
++    }
++
++    public boolean generate(BlockChangeDelegate world, Random random, int i, int j, int k) {
++        // CraftBukkit end
+         int l = random.nextInt(4) + 6;
+         int i1 = 1 + random.nextInt(2);
+         int j1 = l - i1;

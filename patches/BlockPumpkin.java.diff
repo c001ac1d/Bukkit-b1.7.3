@@ -1,0 +1,29 @@
+diff --git a/original/BlockPumpkin.java b/modified/BlockPumpkin.java
+index 215c85c4..acb280c5 100644
+--- a/original/BlockPumpkin.java
++++ b/modified/BlockPumpkin.java
+@@ -1,5 +1,7 @@
+ package net.minecraft.server;
+ 
++import org.bukkit.event.block.BlockRedstoneEvent; // CraftBukkit
++
+ public class BlockPumpkin extends Block {
+ 
+     private boolean a;
+@@ -46,4 +48,16 @@ public class BlockPumpkin extends Block {
+ 
+         world.setData(i, j, k, l);
+     }
++
++    // CraftBukkit start
++    public void doPhysics(World world, int i, int j, int k, int l) {
++        if (net.minecraft.server.Block.byId[l] != null && net.minecraft.server.Block.byId[l].isPowerSource()) {
++            org.bukkit.block.Block block = world.getWorld().getBlockAt(i, j, k);
++            int power = block.getBlockPower();
++
++            BlockRedstoneEvent eventRedstone = new BlockRedstoneEvent(block, power, power);
++            world.getServer().getPluginManager().callEvent(eventRedstone);
++        }
++    }
++    // CraftBukkit end
+ }

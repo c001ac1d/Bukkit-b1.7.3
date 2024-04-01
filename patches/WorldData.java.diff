@@ -1,0 +1,13 @@
+diff --git a/original/WorldData.java b/modified/WorldData.java
+index f590c923..3e8ef772 100644
+--- a/original/WorldData.java
++++ b/modified/WorldData.java
+@@ -13,7 +13,7 @@ public class WorldData {
+     private long g;
+     private NBTTagCompound h;
+     private int i;
+-    private String name;
++    public String name; // CraftBukkit - private -> public
+     private int k;
+     private boolean l;
+     private int m;

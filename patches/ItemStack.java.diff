@@ -1,0 +1,13 @@
+diff --git a/original/ItemStack.java b/modified/ItemStack.java
+index e46fe99f..243b974f 100644
+--- a/original/ItemStack.java
++++ b/modified/ItemStack.java
+@@ -5,7 +5,7 @@ public final class ItemStack {
+     public int count;
+     public int b;
+     public int id;
+-    private int damage;
++    public int damage; // CraftBukkit - private -> public
+ 
+     public ItemStack(Block block) {
+         this(block, 1);

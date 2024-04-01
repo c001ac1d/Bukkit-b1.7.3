@@ -1,0 +1,51 @@
+diff --git a/original/PlayerNBTManager.java b/modified/PlayerNBTManager.java
+index 91bbcf90..df762836 100644
+--- a/original/PlayerNBTManager.java
++++ b/modified/PlayerNBTManager.java
+@@ -11,6 +11,8 @@ import java.io.OutputStream;
+ import java.util.List;
+ import java.util.logging.Logger;
+ 
++import java.util.UUID; // CraftBukkit
++
+ public class PlayerNBTManager implements PlayerFileData, IDataManager {
+ 
+     private static final Logger a = Logger.getLogger("Minecraft");
+@@ -18,6 +20,7 @@ public class PlayerNBTManager implements PlayerFileData, IDataManager {
+     private final File c;
+     private final File d;
+     private final long e = System.currentTimeMillis();
++    private UUID uuid = null; // CraftBukkit
+ 
+     public PlayerNBTManager(File file1, String s, boolean flag) {
+         this.b = new File(file1, s);
+@@ -219,4 +222,29 @@ public class PlayerNBTManager implements PlayerFileData, IDataManager {
+     public File b(String s) {
+         return new File(this.d, s + ".dat");
+     }
++
++    // CraftBukkit start
++    public UUID getUUID() {
++        if (uuid != null) return uuid;
++        try {
++            File file1 = new File(this.b, "uid.dat");
++            if (!file1.exists()) {
++                DataOutputStream dos = new DataOutputStream(new FileOutputStream(file1));
++                uuid = UUID.randomUUID();
++                dos.writeLong(uuid.getMostSignificantBits());
++                dos.writeLong(uuid.getLeastSignificantBits());
++                dos.close();
++            }
++            else {
++                DataInputStream dis = new DataInputStream(new FileInputStream(file1));
++                uuid = new UUID(dis.readLong(), dis.readLong());
++                dis.close();
++            }
++            return uuid;
++        }
++        catch (IOException ex) {
++            return null;
++        }
++    }
++    // CraftBukkit end
+ }

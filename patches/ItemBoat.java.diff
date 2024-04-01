@@ -1,0 +1,31 @@
+diff --git a/original/ItemBoat.java b/modified/ItemBoat.java
+index 0b14986e..b84d6656 100644
+--- a/original/ItemBoat.java
++++ b/modified/ItemBoat.java
+@@ -1,5 +1,11 @@
+ package net.minecraft.server;
+ 
++// CraftBukkit start
++import org.bukkit.craftbukkit.event.CraftEventFactory;
++import org.bukkit.event.block.Action;
++import org.bukkit.event.player.PlayerInteractEvent;
++// CraftBukkit end
++
+ public class ItemBoat extends Item {
+ 
+     public ItemBoat(int i) {
+@@ -34,6 +40,14 @@ public class ItemBoat extends Item {
+                 int k = movingobjectposition.d;
+ 
+                 if (!world.isStatic) {
++                    // CraftBukkit start - Boat placement
++                    PlayerInteractEvent event = CraftEventFactory.callPlayerInteractEvent(entityhuman, Action.RIGHT_CLICK_BLOCK, i, j, k, movingobjectposition.face, itemstack);
++
++                    if (event.isCancelled()) {
++                        return itemstack;
++                    }
++                    // CraftBukkit end
++
+                     if (world.getTypeId(i, j, k) == Block.SNOW.id) {
+                         --j;
+                     }

@@ -1,0 +1,61 @@
+diff --git a/original/Chunk.java b/modified/Chunk.java
+index fdbe8672..e44b9378 100644
+--- a/original/Chunk.java
++++ b/modified/Chunk.java
+@@ -43,8 +43,18 @@ public class Chunk {
+         for (int k = 0; k < this.entitySlices.length; ++k) {
+             this.entitySlices[k] = new ArrayList();
+         }
++
++        // CraftBukkit start
++        org.bukkit.craftbukkit.CraftWorld cworld = this.world.getWorld();
++        this.bukkitChunk = (cworld == null) ? null : cworld.popPreservedChunk(i, j);
++        if (this.bukkitChunk == null) {
++            this.bukkitChunk = new org.bukkit.craftbukkit.CraftChunk(this);
++        }
+     }
+ 
++    public org.bukkit.Chunk bukkitChunk;
++    // CraftBukkit end
++
+     public Chunk(World world, byte[] abyte, int i, int j) {
+         this(world, i, j);
+         this.b = abyte;
+@@ -347,7 +357,9 @@ public class Chunk {
+ 
+         if (i != this.x || j != this.z) {
+             System.out.println("Wrong location! " + entity);
+-            Thread.dumpStack();
++            // Thread.dumpStack(); // CraftBukkit
++            // CraftBukkit
++            System.out.println("" + entity.locX + "," + entity.locZ + "(" + i + "," + j + ") vs " + this.x + "," + this.z);
+         }
+ 
+         int k = MathHelper.floor(entity.locY / 16.0D);
+@@ -466,10 +478,25 @@ public class Chunk {
+         while (iterator.hasNext()) {
+             TileEntity tileentity = (TileEntity) iterator.next();
+ 
+-            tileentity.h();
++            world.markForRemoval(tileentity); // Craftbukkit
+         }
+ 
+         for (int i = 0; i < this.entitySlices.length; ++i) {
++            // CraftBukkit start
++            java.util.Iterator<Object> iter = this.entitySlices[i].iterator();
++            while (iter.hasNext()) {
++                Entity entity = (Entity) iter.next();
++                int cx = org.bukkit.Location.locToBlock(entity.locX) >> 4;
++                int cz = org.bukkit.Location.locToBlock(entity.locZ) >> 4;
++
++                // Do not pass along players, as doing so can get them stuck outside of time.
++                // (which for example disables inventory icon updates and prevents block breaking)
++                if (entity instanceof EntityPlayer && (cx != this.x || cz != this.z)) {
++                    iter.remove();
++                }
++            }
++            // CraftBukkit end
++
+             this.world.b(this.entitySlices[i]);
+         }
+     }

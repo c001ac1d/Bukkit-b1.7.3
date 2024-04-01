@@ -1,0 +1,39 @@
+diff --git a/original/BlockRedstoneWire.java b/modified/BlockRedstoneWire.java
+index 7349428f..af50818a 100644
+--- a/original/BlockRedstoneWire.java
++++ b/modified/BlockRedstoneWire.java
+@@ -5,6 +5,8 @@ import java.util.HashSet;
+ import java.util.Random;
+ import java.util.Set;
+ 
++import org.bukkit.event.block.BlockRedstoneEvent; // CraftBukkit
++
+ public class BlockRedstoneWire extends Block {
+ 
+     private boolean a = true;
+@@ -102,6 +104,15 @@ public class BlockRedstoneWire extends Block {
+             }
+         }
+ 
++        // CraftBukkit start
++        if (k1 != l1) {
++            BlockRedstoneEvent event = new BlockRedstoneEvent(world.getWorld().getBlockAt(i, j, k), k1, l1);
++            world.getServer().getPluginManager().callEvent(event);
++
++            l1 = event.getNewCurrent();
++        }
++        // CraftBukkit end
++
+         if (k1 != l1) {
+             world.suppressPhysics = true;
+             world.setData(i, j, k, l1);
+@@ -252,7 +263,8 @@ public class BlockRedstoneWire extends Block {
+         }
+     }
+ 
+-    private int getPower(World world, int i, int j, int k, int l) {
++    // CraftBukkit - private -> public
++    public int getPower(World world, int i, int j, int k, int l) {
+         if (world.getTypeId(i, j, k) != this.id) {
+             return l;
+         } else {

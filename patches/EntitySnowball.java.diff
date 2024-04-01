@@ -1,0 +1,66 @@
+diff --git a/original/EntitySnowball.java b/modified/EntitySnowball.java
+index e866307f..d89221a8 100644
+--- a/original/EntitySnowball.java
++++ b/modified/EntitySnowball.java
+@@ -2,6 +2,14 @@ package net.minecraft.server;
+ 
+ import java.util.List;
+ 
++// CraftBukkit start
++import org.bukkit.craftbukkit.entity.CraftLivingEntity;
++import org.bukkit.entity.Projectile;
++import org.bukkit.event.entity.EntityDamageByEntityEvent;
++import org.bukkit.event.entity.EntityDamageEvent;
++import org.bukkit.event.entity.ProjectileHitEvent;
++// CraftBukkit end
++
+ public class EntitySnowball extends Entity {
+ 
+     private int b = -1;
+@@ -10,7 +18,7 @@ public class EntitySnowball extends Entity {
+     private int e = 0;
+     private boolean f = false;
+     public int a = 0;
+-    private EntityLiving shooter;
++    public EntityLiving shooter; // CraftBukkit - private -> public
+     private int h;
+     private int i = 0;
+ 
+@@ -140,9 +148,35 @@ public class EntitySnowball extends Entity {
+         }
+ 
+         if (movingobjectposition != null) {
+-            if (movingobjectposition.entity != null && movingobjectposition.entity.damageEntity(this.shooter, 0)) {
+-                ;
++            // CraftBukkit start
++            ProjectileHitEvent phe = new ProjectileHitEvent((Projectile) this.getBukkitEntity());
++            this.world.getServer().getPluginManager().callEvent(phe);
++
++            if (movingobjectposition.entity != null) {
++                boolean stick;
++                if (movingobjectposition.entity instanceof EntityLiving) {
++                    org.bukkit.entity.Entity damagee = movingobjectposition.entity.getBukkitEntity();
++                    Projectile projectile = (Projectile) this.getBukkitEntity();
++
++                    // TODO @see EntityArrow#162
++                    EntityDamageByEntityEvent event = new EntityDamageByEntityEvent(projectile, damagee, EntityDamageEvent.DamageCause.PROJECTILE, 0);
++                    this.world.getServer().getPluginManager().callEvent(event);
++                    this.shooter = (projectile.getShooter() == null) ? null : ((CraftLivingEntity) projectile.getShooter()).getHandle();
++
++                    if (event.isCancelled()) {
++                        stick = !projectile.doesBounce();
++                    } else {
++                        // this function returns if the snowball should stick in or not, i.e. !bounce
++                        stick = movingobjectposition.entity.damageEntity(this, event.getDamage());
++                    }
++                } else {
++                    stick = movingobjectposition.entity.damageEntity(this.shooter, 0);
++                }
++                if (stick) {
++                    ;
++                }
+             }
++            // CraftBukkit end
+ 
+             for (int k = 0; k < 8; ++k) {
+                 this.world.a("snowballpoof", this.locX, this.locY, this.locZ, 0.0D, 0.0D, 0.0D);

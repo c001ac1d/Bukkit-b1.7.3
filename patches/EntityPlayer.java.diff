@@ -1,0 +1,191 @@
+diff --git a/original/EntityPlayer.java b/modified/EntityPlayer.java
+index b64ff1a7..c7fa3a18 100644
+--- a/original/EntityPlayer.java
++++ b/modified/EntityPlayer.java
+@@ -5,6 +5,15 @@ import java.util.LinkedList;
+ import java.util.List;
+ import java.util.Set;
+ 
++// CraftBukkit start
++import org.bukkit.Bukkit;
++import org.bukkit.craftbukkit.ChunkCompressionThread;
++import org.bukkit.craftbukkit.CraftWorld;
++import org.bukkit.craftbukkit.inventory.CraftItemStack;
++import org.bukkit.event.entity.EntityDeathEvent;
++import org.bukkit.event.entity.EntityRegainHealthEvent.RegainReason;
++// CraftBukkit end
++
+ public class EntityPlayer extends EntityHuman implements ICrafting {
+ 
+     public NetServerHandler netServerHandler;
+@@ -40,10 +49,37 @@ public class EntityPlayer extends EntityHuman implements ICrafting {
+         this.bs = 0.0F;
+         this.name = s;
+         this.height = 0.0F;
++
++        // CraftBukkit start
++        this.displayName = this.name;
+     }
+ 
++    public String displayName;
++    public org.bukkit.Location compassTarget;
++    // CraftBukkit end
++
+     public void spawnIn(World world) {
+         super.spawnIn(world);
++        // CraftBukkit - world fallback code, either respawn location or global spawn
++        if (world == null) {
++            this.dead = false;
++            ChunkCoordinates position = null;
++            if (this.spawnWorld != null && !this.spawnWorld.equals("")) {
++                CraftWorld cworld = (CraftWorld) Bukkit.getServer().getWorld(this.spawnWorld);
++                if (cworld != null && this.getBed() != null) {
++                    world = cworld.getHandle();
++                    position = EntityHuman.getBed(cworld.getHandle(), this.getBed());
++                }
++            }
++            if (world == null || position == null) {
++                world = ((CraftWorld) Bukkit.getServer().getWorlds().get(0)).getHandle();
++                position = world.getSpawn();
++            }
++            this.world = world;
++            this.setPosition(position.x + 0.5, position.y, position.z + 0.5);
++        }
++        this.dimension = ((WorldServer) this.world).dimension;
++        // CraftBukkit end
+         this.itemInWorldManager = new ItemInWorldManager((WorldServer) world);
+         this.itemInWorldManager.player = this;
+     }
+@@ -84,14 +120,50 @@ public class EntityPlayer extends EntityHuman implements ICrafting {
+     }
+ 
+     public void die(Entity entity) {
+-        this.inventory.h();
++        // CraftBukkit start
++        java.util.List<org.bukkit.inventory.ItemStack> loot = new java.util.ArrayList<org.bukkit.inventory.ItemStack>();
++
++        for (int i = 0; i < this.inventory.items.length; ++i) {
++            if (this.inventory.items[i] != null) {
++                loot.add(new CraftItemStack(this.inventory.items[i]));
++            }
++        }
++
++        for (int i = 0; i < this.inventory.armor.length; ++i) {
++            if (this.inventory.armor[i] != null) {
++                loot.add(new CraftItemStack(this.inventory.armor[i]));
++            }
++        }
++
++        org.bukkit.entity.Entity bukkitEntity = this.getBukkitEntity();
++        CraftWorld bworld = this.world.getWorld();
++
++        EntityDeathEvent event = new EntityDeathEvent(bukkitEntity, loot);
++        this.world.getServer().getPluginManager().callEvent(event);
++
++        // CraftBukkit - we clean the player's inventory after the EntityDeathEvent is called so plugins can get the exact state of the inventory.
++        for (int i = 0; i < this.inventory.items.length; ++i) {
++            this.inventory.items[i] = null;
++        }
++
++        for (int i = 0; i < this.inventory.armor.length; ++i) {
++            this.inventory.armor[i] = null;
++        }
++
++        for (org.bukkit.inventory.ItemStack stack: event.getDrops()) {
++            bworld.dropItemNaturally(bukkitEntity.getLocation(), stack);
++        }
++
++        this.y();
++        // CraftBukkit end
+     }
+ 
+     public boolean damageEntity(Entity entity, int i) {
+         if (this.bM > 0) {
+             return false;
+         } else {
+-            if (!this.b.pvpMode) {
++            // CraftBukkit - this.b.pvpMode -> this.world.pvpMode
++            if (!this.world.pvpMode) {
+                 if (entity instanceof EntityHuman) {
+                     return false;
+                 }
+@@ -114,7 +186,7 @@ public class EntityPlayer extends EntityHuman implements ICrafting {
+     }
+ 
+     public void b(int i) {
+-        super.b(i);
++        super.b(i, RegainReason.EATING);
+     }
+ 
+     public void a(boolean flag) {
+@@ -138,7 +210,7 @@ public class EntityPlayer extends EntityHuman implements ICrafting {
+             if (chunkcoordintpair != null) {
+                 boolean flag1 = false;
+ 
+-                if (this.netServerHandler.b() < 4) {
++                if (this.netServerHandler.b() + ChunkCompressionThread.getPlayerQueueSize(this) < 4) { // CraftBukkit - Add check against Chunk Packets in the ChunkCompressionThread.
+                     flag1 = true;
+                 }
+ 
+@@ -157,7 +229,7 @@ public class EntityPlayer extends EntityHuman implements ICrafting {
+         }
+ 
+         if (this.E) {
+-            if (this.b.propertyManager.getBoolean("allow-nether", true)) {
++            //if (this.b.propertyManager.getBoolean("allow-nether", true)) { // CraftBukkit
+                 if (this.activeContainer != this.defaultContainer) {
+                     this.y();
+                 }
+@@ -174,7 +246,7 @@ public class EntityPlayer extends EntityHuman implements ICrafting {
+                 }
+ 
+                 this.E = false;
+-            }
++            //} // CraftBukkit
+         } else {
+             if (this.F > 0.0F) {
+                 this.F -= 0.05F;
+@@ -267,7 +339,17 @@ public class EntityPlayer extends EntityHuman implements ICrafting {
+     }
+ 
+     public void mount(Entity entity) {
+-        super.mount(entity);
++        // CraftBukkit start
++        this.setPassengerOf(entity);
++    }
++
++    public void setPassengerOf(Entity entity) {
++        // mount(null) doesn't really fly for overloaded methods,
++        // so this method is needed
++
++        super.setPassengerOf(entity);
++        // CraftBukkit end
++
+         this.netServerHandler.sendPacket(new Packet39AttachEntity(this, this.vehicle));
+         this.netServerHandler.a(this.locX, this.locY, this.locZ, this.yaw, this.pitch);
+     }
+@@ -399,4 +481,24 @@ public class EntityPlayer extends EntityHuman implements ICrafting {
+ 
+         this.netServerHandler.sendPacket(new Packet3Chat(s1));
+     }
++
++    // CraftBukkit start
++    public long timeOffset = 0;
++    public boolean relativeTime = true;
++
++    public long getPlayerTime() {
++        if (this.relativeTime) {
++            // Adds timeOffset to the current server time.
++            return this.world.getTime() + this.timeOffset;
++        } else {
++            // Adds timeOffset to the beginning of this day.
++            return this.world.getTime() - (this.world.getTime() % 24000) + this.timeOffset;
++        }
++    }
++
++    @Override
++    public String toString() {
++        return super.toString() + "(" + this.name + " at " + this.locX + "," + this.locY + "," + this.locZ + ")";
++    }
++    // CraftBukkit end
+ }

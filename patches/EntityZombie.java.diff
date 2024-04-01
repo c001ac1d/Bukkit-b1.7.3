@@ -1,0 +1,28 @@
+diff --git a/original/EntityZombie.java b/modified/EntityZombie.java
+index 90f18434..f5c276d5 100644
+--- a/original/EntityZombie.java
++++ b/modified/EntityZombie.java
+@@ -1,5 +1,7 @@
+ package net.minecraft.server;
+ 
++import org.bukkit.event.entity.EntityCombustEvent; // CraftBukkit
++
+ public class EntityZombie extends EntityMonster {
+ 
+     public EntityZombie(World world) {
+@@ -14,7 +16,14 @@ public class EntityZombie extends EntityMonster {
+             float f = this.c(1.0F);
+ 
+             if (f > 0.5F && this.world.isChunkLoaded(MathHelper.floor(this.locX), MathHelper.floor(this.locY), MathHelper.floor(this.locZ)) && this.random.nextFloat() * 30.0F < (f - 0.4F) * 2.0F) {
+-                this.fireTicks = 300;
++                // CraftBukkit start
++                EntityCombustEvent event = new EntityCombustEvent(this.getBukkitEntity());
++                this.world.getServer().getPluginManager().callEvent(event);
++
++                if (!event.isCancelled()) {
++                    this.fireTicks = 300;
++                }
++                // CraftBukkit end
+             }
+         }
+ 

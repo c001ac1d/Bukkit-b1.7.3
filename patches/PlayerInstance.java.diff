@@ -1,0 +1,48 @@
+diff --git a/original/PlayerInstance.java b/modified/PlayerInstance.java
+index fdc63854..3c7706d5 100644
+--- a/original/PlayerInstance.java
++++ b/modified/PlayerInstance.java
+@@ -35,8 +35,12 @@ class PlayerInstance {
+         if (this.b.contains(entityplayer)) {
+             throw new IllegalStateException("Failed to add player. " + entityplayer + " already is in chunk " + this.chunkX + ", " + this.chunkZ);
+         } else {
+-            entityplayer.playerChunkCoordIntPairs.add(this.location);
+-            entityplayer.netServerHandler.sendPacket(new Packet50PreChunk(this.location.x, this.location.z, true));
++            // CraftBukkit start
++            if (entityplayer.playerChunkCoordIntPairs.add(this.location)) {
++                entityplayer.netServerHandler.sendPacket(new Packet50PreChunk(this.location.x, this.location.z, true));
++            }
++            // CraftBukkit end
++
+             this.b.add(entityplayer);
+             entityplayer.chunkCoordIntPairQueue.add(this.location);
+         }
+@@ -57,7 +61,8 @@ class PlayerInstance {
+             }
+ 
+             entityplayer.chunkCoordIntPairQueue.remove(this.location);
+-            if (entityplayer.playerChunkCoordIntPairs.contains(this.location)) {
++            // CraftBukkit - contains -> remove -- TODO VERIFY!!!!
++            if (entityplayer.playerChunkCoordIntPairs.remove(this.location)) {
+                 entityplayer.netServerHandler.sendPacket(new Packet50PreChunk(this.chunkX, this.chunkZ, false));
+             }
+         }
+@@ -157,11 +162,14 @@ class PlayerInstance {
+                     this.sendAll(new Packet52MultiBlockChange(this.chunkX, this.chunkZ, this.dirtyBlocks, this.dirtyCount, worldserver));
+ 
+                     for (i = 0; i < this.dirtyCount; ++i) {
+-                        j = this.chunkX * 16 + (this.dirtyCount >> 12 & 15);
+-                        k = this.dirtyCount & 255;
+-                        l = this.chunkZ * 16 + (this.dirtyCount >> 8 & 15);
++                        // CraftBukkit start - Fixes TileEntity updates occurring upon a multi-block change; dirtyCount -> dirtyBlocks[i]
++                        j = this.chunkX * 16 + (this.dirtyBlocks[i] >> 12 & 15);
++                        k = this.dirtyBlocks[i] & 255;
++                        l = this.chunkZ * 16 + (this.dirtyBlocks[i] >> 8 & 15);
++                        // CraftBukkit end
++
+                         if (Block.isTileEntity[worldserver.getTypeId(j, k, l)]) {
+-                            System.out.println("Sending!");
++                            // System.out.println("Sending!"); // CraftBukkit
+                             this.sendTileEntity(worldserver.getTileEntity(j, k, l));
+                         }
+                     }

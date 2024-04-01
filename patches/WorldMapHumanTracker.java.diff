@@ -1,0 +1,59 @@
+diff --git a/original/WorldMapHumanTracker.java b/modified/WorldMapHumanTracker.java
+index 18e67ca4..dc330b81 100644
+--- a/original/WorldMapHumanTracker.java
++++ b/modified/WorldMapHumanTracker.java
+@@ -1,5 +1,11 @@
+ package net.minecraft.server;
+ 
++// CraftBukkit start
++import org.bukkit.map.MapCursor;
++import org.bukkit.craftbukkit.entity.CraftPlayer;
++import org.bukkit.craftbukkit.map.RenderData;
++// CraftBukkit end
++
+ public class WorldMapHumanTracker {
+ 
+     public final EntityHuman trackee;
+@@ -28,20 +34,26 @@ public class WorldMapHumanTracker {
+     public byte[] a(ItemStack itemstack) {
+         int i;
+         int j;
++        
++        RenderData render = this.d.mapView.render((CraftPlayer) trackee.getBukkitEntity()); // CraftBukkit
+ 
+         if (--this.f < 0) {
+             this.f = 4;
+-            byte[] abyte = new byte[this.d.i.size() * 3 + 1];
++            byte[] abyte = new byte[render.cursors.size() * 3 + 1]; // CraftBukkit
+ 
+             abyte[0] = 1;
+ 
+-            for (i = 0; i < this.d.i.size(); ++i) {
+-                WorldMapOrienter worldmaporienter = (WorldMapOrienter) this.d.i.get(i);
+-
+-                abyte[i * 3 + 1] = (byte) (worldmaporienter.a + (worldmaporienter.d & 15) * 16);
+-                abyte[i * 3 + 2] = worldmaporienter.b;
+-                abyte[i * 3 + 3] = worldmaporienter.c;
++            // CraftBukkit start
++            for (i = 0; i < render.cursors.size(); ++i) {
++                MapCursor cursor = render.cursors.get(i);
++                if (!cursor.isVisible()) continue;
++                
++                byte value = (byte) (((cursor.getRawType() == 0 || cursor.getDirection() < 8 ? cursor.getDirection() : cursor.getDirection() - 1) & 15) * 16);
++                abyte[i * 3 + 1] = (byte) (value | (cursor.getRawType() != 0 && value < 0 ? 16 - cursor.getRawType() : cursor.getRawType()));
++                abyte[i * 3 + 2] = (byte) cursor.getX();
++                abyte[i * 3 + 3] = (byte) cursor.getY();
+             }
++            // CraftBukkit end
+ 
+             boolean flag = true;
+ 
+@@ -75,7 +87,7 @@ public class WorldMapHumanTracker {
+                 abyte1[2] = (byte) l;
+ 
+                 for (int i1 = 0; i1 < abyte1.length - 3; ++i1) {
+-                    abyte1[i1 + 3] = this.d.f[(i1 + l) * 128 + i];
++                    abyte1[i1 + 3] = render.buffer[(i1 + l) * 128 + i]; // CraftBukkit
+                 }
+ 
+                 this.c[i] = -1;

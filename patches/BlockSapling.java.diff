@@ -1,0 +1,70 @@
+diff --git a/original/BlockSapling.java b/modified/BlockSapling.java
+index 8b5d8ae6..012205d0 100644
+--- a/original/BlockSapling.java
++++ b/modified/BlockSapling.java
+@@ -2,6 +2,8 @@ package net.minecraft.server;
+ 
+ import java.util.Random;
+ 
++import org.bukkit.BlockChangeDelegate; // CraftBukkit
++
+ public class BlockSapling extends BlockFlower {
+ 
+     protected BlockSapling(int i, int j) {
+@@ -35,25 +37,50 @@ public class BlockSapling extends BlockFlower {
+         int l = world.getData(i, j, k) & 3;
+ 
+         world.setRawTypeId(i, j, k, 0);
+-        Object object = null;
++
++        // CraftBukkit start - fixes client updates on recently grown trees
++        boolean grownTree;
++        BlockChangeWithNotify delegate = new BlockChangeWithNotify(world);
+ 
+         if (l == 1) {
+-            object = new WorldGenTaiga2();
++            grownTree = new WorldGenTaiga2().generate(delegate, random, i, j, k);
+         } else if (l == 2) {
+-            object = new WorldGenForest();
++            grownTree = new WorldGenForest().generate(delegate, random, i, j, k);
+         } else {
+-            object = new WorldGenTrees();
+             if (random.nextInt(10) == 0) {
+-                object = new WorldGenBigTree();
++                grownTree = new WorldGenBigTree().generate(delegate, random, i, j, k);
++            } else {
++                grownTree = new WorldGenTrees().generate(delegate, random, i, j, k);
+             }
+         }
+ 
+-        if (!((WorldGenerator) object).a(world, random, i, j, k)) {
++        if (!grownTree) {
+             world.setRawTypeIdAndData(i, j, k, this.id, l);
+         }
++        // CraftBukkit end
+     }
+ 
+     protected int a_(int i) {
+         return i & 3;
+     }
++
++    // CraftBukkit start
++    private class BlockChangeWithNotify implements BlockChangeDelegate {
++        World world;
++
++        BlockChangeWithNotify(World world) { this.world = world; }
++
++        public boolean setRawTypeId(int x, int y, int z, int type) {
++            return this.world.setTypeId(x, y, z, type);
++        }
++
++        public boolean setRawTypeIdAndData(int x, int y, int z, int type, int data) {
++            return this.world.setTypeIdAndData(x, y, z, type, data);
++        }
++
++        public int getTypeId(int x, int y, int z) {
++            return this.world.getTypeId(x, y, z);
++        }
++    }
++    // CraftBukkit end
+ }

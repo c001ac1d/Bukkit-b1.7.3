@@ -1,0 +1,15 @@
+diff --git a/original/WorldChunkManager.java b/modified/WorldChunkManager.java
+index 195e17a3..3eff8654 100644
+--- a/original/WorldChunkManager.java
++++ b/modified/WorldChunkManager.java
+@@ -112,4 +112,10 @@ public class WorldChunkManager {
+ 
+         return abiomebase;
+     }
++
++    // CraftBukkit start
++    public double getHumidity(int x, int z) {
++        return this.f.a(this.rain, (double)x, (double)z, 1, 1, 0.05000000074505806D, 0.05000000074505806D, 0.3333333333333333D)[0];
++    }
++    // CraftBukkit end
+ }

@@ -1,0 +1,59 @@
+diff --git a/original/Packet51MapChunk.java b/modified/Packet51MapChunk.java
+index 8448330e..3bf163f6 100644
+--- a/original/Packet51MapChunk.java
++++ b/modified/Packet51MapChunk.java
+@@ -16,13 +16,20 @@ public class Packet51MapChunk extends Packet {
+     public int e;
+     public int f;
+     public byte[] g;
+-    private int h;
++    public int h; // CraftBukkit - private -> public
++    public byte[] rawData; // CraftBukkit
+ 
+     public Packet51MapChunk() {
+         this.k = true;
+     }
+ 
++    // CraftBukkit start
+     public Packet51MapChunk(int i, int j, int k, int l, int i1, int j1, World world) {
++        this(i, j, k, l, i1, j1, world.getMultiChunkData(i, j, k, l, i1, j1));
++    }
++
++    public Packet51MapChunk(int i, int j, int k, int l, int i1, int j1, byte[] data) {
++        // CraftBukkit end
+         this.k = true;
+         this.a = i;
+         this.b = j;
+@@ -30,7 +37,8 @@ public class Packet51MapChunk extends Packet {
+         this.d = l;
+         this.e = i1;
+         this.f = j1;
+-        byte[] abyte = world.getMultiChunkData(i, j, k, l, i1, j1);
++        /* CraftBukkit - Moved compression into its own method.
++        byte[] abyte = data; // CraftBukkit - uses data from above constructor
+         Deflater deflater = new Deflater(-1);
+ 
+         try {
+@@ -40,10 +48,11 @@ public class Packet51MapChunk extends Packet {
+             this.h = deflater.deflate(this.g);
+         } finally {
+             deflater.end();
+-        }
++        }*/
++        this.rawData = data; // CraftBukkit
+     }
+ 
+-    public void a(DataInputStream datainputstream) throws IOException {
++    public void a(DataInputStream datainputstream) throws IOException { // CraftBukkit - throws IOEXception
+         this.a = datainputstream.readInt();
+         this.b = datainputstream.readShort();
+         this.c = datainputstream.readInt();
+@@ -68,7 +77,7 @@ public class Packet51MapChunk extends Packet {
+         }
+     }
+ 
+-    public void a(DataOutputStream dataoutputstream) throws IOException {
++    public void a(DataOutputStream dataoutputstream) throws IOException { // CraftBukkit - throws IOException
+         dataoutputstream.writeInt(this.a);
+         dataoutputstream.writeShort(this.b);
+         dataoutputstream.writeInt(this.c);

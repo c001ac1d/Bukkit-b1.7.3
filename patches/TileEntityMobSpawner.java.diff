@@ -1,0 +1,41 @@
+diff --git a/original/TileEntityMobSpawner.java b/modified/TileEntityMobSpawner.java
+index 71b9d872..9de8f5b5 100644
+--- a/original/TileEntityMobSpawner.java
++++ b/modified/TileEntityMobSpawner.java
+@@ -1,9 +1,11 @@
+ package net.minecraft.server;
+ 
++import org.bukkit.event.entity.CreatureSpawnEvent.SpawnReason; // CraftBukkit
++
+ public class TileEntityMobSpawner extends TileEntity {
+ 
+     public int spawnDelay = -1;
+-    private String mobName = "Pig";
++    public String mobName = "Pig"; // CraftBukkit - private -> public
+     public double b;
+     public double c = 0.0D;
+ 
+@@ -52,6 +54,13 @@ public class TileEntityMobSpawner extends TileEntity {
+                         return;
+                     }
+ 
++                    // CraftBukkit start - The world we're spawning in accepts this creature
++                    boolean isAnimal = entityliving instanceof EntityAnimal || entityliving instanceof EntityWaterAnimal;
++                    if ((isAnimal && !this.world.allowAnimals) || (!isAnimal && !this.world.allowMonsters)) {
++                        return;
++                    }
++                    // CraftBukkit end
++
+                     int j = this.world.a(entityliving.getClass(), AxisAlignedBB.b((double) this.x, (double) this.y, (double) this.z, (double) (this.x + 1), (double) (this.y + 1), (double) (this.z + 1)).b(8.0D, 4.0D, 8.0D)).size();
+ 
+                     if (j >= 6) {
+@@ -66,7 +75,8 @@ public class TileEntityMobSpawner extends TileEntity {
+ 
+                         entityliving.setPositionRotation(d3, d4, d5, this.world.random.nextFloat() * 360.0F, 0.0F);
+                         if (entityliving.d()) {
+-                            this.world.addEntity(entityliving);
++                            // CraftBukkit - added a reason for spawning this creature
++                            this.world.addEntity(entityliving, SpawnReason.SPAWNER);
+ 
+                             for (int k = 0; k < 20; ++k) {
+                                 d0 = (double) this.x + 0.5D + ((double) this.world.random.nextFloat() - 0.5D) * 2.0D;

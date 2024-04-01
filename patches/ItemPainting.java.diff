@@ -1,0 +1,36 @@
+diff --git a/original/ItemPainting.java b/modified/ItemPainting.java
+index f96b2bb7..9ec87d0e 100644
+--- a/original/ItemPainting.java
++++ b/modified/ItemPainting.java
+@@ -1,5 +1,11 @@
+ package net.minecraft.server;
+ 
++// CraftBukkit start
++import org.bukkit.entity.Player;
++import org.bukkit.event.painting.PaintingPlaceEvent;
++import org.bukkit.craftbukkit.block.CraftBlock;
++// CraftBukkit end
++
+ public class ItemPainting extends Item {
+ 
+     public ItemPainting(int i) {
+@@ -30,6 +36,19 @@ public class ItemPainting extends Item {
+ 
+             if (entitypainting.h()) {
+                 if (!world.isStatic) {
++                    // CraftBukkit start
++                    Player who = (entityhuman == null) ? null : (Player) entityhuman.getBukkitEntity();
++
++                    org.bukkit.block.Block blockClicked = world.getWorld().getBlockAt(i, j, k);
++                    org.bukkit.block.BlockFace blockFace = CraftBlock.notchToBlockFace(l);
++
++                    PaintingPlaceEvent event = new PaintingPlaceEvent((org.bukkit.entity.Painting) entitypainting.getBukkitEntity(), who, blockClicked, blockFace);
++                    world.getServer().getPluginManager().callEvent(event);
++
++                    if (event.isCancelled()) {
++                        return false;
++                    }
++                    // CraftBukkit end
+                     world.addEntity(entitypainting);
+                 }
+ 

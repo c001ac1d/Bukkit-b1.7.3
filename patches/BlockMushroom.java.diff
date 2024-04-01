@@ -1,0 +1,33 @@
+diff --git a/original/BlockMushroom.java b/modified/BlockMushroom.java
+index 27163691..c179ae22 100644
+--- a/original/BlockMushroom.java
++++ b/modified/BlockMushroom.java
+@@ -2,6 +2,8 @@ package net.minecraft.server;
+ 
+ import java.util.Random;
+ 
++import org.bukkit.event.block.BlockSpreadEvent; // CraftBukkit
++
+ public class BlockMushroom extends BlockFlower {
+ 
+     protected BlockMushroom(int i, int j) {
+@@ -23,7 +25,18 @@ public class BlockMushroom extends BlockFlower {
+ 
+                 k1 = k + (random.nextInt(3) - 1);
+                 if (world.isEmpty(l, i1, j1) && this.f(world, l, i1, j1)) {
+-                    world.setTypeId(l, i1, j1, this.id);
++                    // CraftBukkit start
++                    org.bukkit.World bworld = world.getWorld();
++                    org.bukkit.block.BlockState blockState = bworld.getBlockAt(l, i1, j1).getState();
++                    blockState.setTypeId(this.id);
++
++                    BlockSpreadEvent event = new BlockSpreadEvent(blockState.getBlock(), bworld.getBlockAt(i, j, k), blockState);
++                    world.getServer().getPluginManager().callEvent(event);
++
++                    if (!event.isCancelled()) {
++                        blockState.update(true);
++                    }
++                    // CraftBukkit end
+                 }
+             }
+         }

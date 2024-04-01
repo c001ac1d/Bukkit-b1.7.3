@@ -1,0 +1,51 @@
+diff --git a/original/SpawnerCreature.java b/modified/SpawnerCreature.java
+index 132c649d..fda0a090 100644
+--- a/original/SpawnerCreature.java
++++ b/modified/SpawnerCreature.java
+@@ -5,6 +5,9 @@ import java.util.Iterator;
+ import java.util.List;
+ import java.util.Set;
+ 
++// CraftBukkit
++import org.bukkit.event.entity.CreatureSpawnEvent.SpawnReason;
++
+ public final class SpawnerCreature {
+ 
+     private static Set b = new HashSet();
+@@ -127,7 +130,8 @@ public final class SpawnerCreature {
+                                                     entityliving.setPositionRotation((double) f, (double) f1, (double) f2, world.random.nextFloat() * 360.0F, 0.0F);
+                                                     if (entityliving.d()) {
+                                                         ++l2;
+-                                                        world.addEntity(entityliving);
++                                                        // CraftBukkit - added a reason for spawning this creature
++                                                        world.addEntity(entityliving, SpawnReason.NATURAL);
+                                                         a(entityliving, world, f, f1, f2);
+                                                         if (l2 >= entityliving.l()) {
+                                                             continue label113;
+@@ -159,7 +163,8 @@ public final class SpawnerCreature {
+             EntitySkeleton entityskeleton = new EntitySkeleton(world);
+ 
+             entityskeleton.setPositionRotation((double) f, (double) f1, (double) f2, entityliving.yaw, 0.0F);
+-            world.addEntity(entityskeleton);
++            // CraftBukkit - added a reason for spawning this creature
++            world.addEntity(entityskeleton, SpawnReason.NATURAL);
+             entityskeleton.mount(entityliving);
+         } else if (entityliving instanceof EntitySheep) {
+             ((EntitySheep) entityliving).setColor(EntitySheep.a(world.random));
+@@ -230,7 +235,8 @@ public final class SpawnerCreature {
+                                     }
+ 
+                                     entityliving.setPositionRotation((double) ((float) chunkcoordinates.x + 0.5F), (double) chunkcoordinates.y, (double) ((float) chunkcoordinates.z + 0.5F), 0.0F, 0.0F);
+-                                    world.addEntity(entityliving);
++                                    // CraftBukkit - added a reason for spawning this creature
++                                    world.addEntity(entityliving, SpawnReason.BED);
+                                     a(entityliving, world, (float) chunkcoordinates.x + 0.5F, (float) chunkcoordinates.y, (float) chunkcoordinates.z + 0.5F);
+                                     entityhuman.a(true, false, false);
+                                     entityliving.Q();
+@@ -246,4 +252,4 @@ public final class SpawnerCreature {
+ 
+         return flag;
+     }
+-}
++}
+\ No newline at end of file

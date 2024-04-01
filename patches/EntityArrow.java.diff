@@ -1,0 +1,80 @@
+diff --git a/original/EntityArrow.java b/modified/EntityArrow.java
+index cf88ec0c..3e31abd8 100644
+--- a/original/EntityArrow.java
++++ b/modified/EntityArrow.java
+@@ -2,6 +2,15 @@ package net.minecraft.server;
+ 
+ import java.util.List;
+ 
++// CraftBukkit start
++import org.bukkit.craftbukkit.entity.CraftLivingEntity;
++import org.bukkit.entity.Projectile;
++import org.bukkit.event.entity.EntityDamageByEntityEvent;
++import org.bukkit.event.entity.EntityDamageEvent;
++import org.bukkit.event.entity.ProjectileHitEvent;
++import org.bukkit.event.player.PlayerPickupItemEvent;
++// CraftBukkit end
++
+ public class EntityArrow extends Entity {
+ 
+     private int d = -1;
+@@ -154,8 +163,37 @@ public class EntityArrow extends Entity {
+             float f2;
+ 
+             if (movingobjectposition != null) {
++                // CraftBukkit start
++                ProjectileHitEvent phe = new ProjectileHitEvent((Projectile) this.getBukkitEntity());
++                this.world.getServer().getPluginManager().callEvent(phe);
++                // CraftBukkit end
+                 if (movingobjectposition.entity != null) {
+-                    if (movingobjectposition.entity.damageEntity(this.shooter, 4)) {
++                    // CraftBukkit start
++                    boolean stick;
++                    if (entity instanceof EntityLiving) {
++                        org.bukkit.Server server = this.world.getServer();
++
++                        // TODO decide if we should create DamageCause.ARROW, DamageCause.PROJECTILE
++                        // or leave as DamageCause.ENTITY_ATTACK
++                        org.bukkit.entity.Entity damagee = movingobjectposition.entity.getBukkitEntity();
++                        Projectile projectile = (Projectile) this.getBukkitEntity();
++                        // TODO deal with arrows being fired from a non-entity
++
++                        EntityDamageByEntityEvent event = new EntityDamageByEntityEvent(projectile, damagee, EntityDamageEvent.DamageCause.PROJECTILE, 4);
++                        server.getPluginManager().callEvent(event);
++                        this.shooter = (projectile.getShooter() == null) ? null : ((CraftLivingEntity) projectile.getShooter()).getHandle();
++
++                        if (event.isCancelled()) {
++                            stick = !projectile.doesBounce();
++                        } else {
++                            // this function returns if the arrow should stick in or not, i.e. !bounce
++                            stick = movingobjectposition.entity.damageEntity(this, event.getDamage());
++                        }
++                    } else {
++                        stick = movingobjectposition.entity.damageEntity(this.shooter, 4);
++                    }
++                    if (stick) {
++                        // CraftBukkit end
+                         this.world.makeSound(this, "random.drr", 1.0F, 1.2F / (this.random.nextFloat() * 0.2F + 0.9F));
+                         this.die();
+                     } else {
+@@ -254,6 +292,20 @@ public class EntityArrow extends Entity {
+ 
+     public void b(EntityHuman entityhuman) {
+         if (!this.world.isStatic) {
++            // CraftBukkit start
++            ItemStack itemstack = new ItemStack(Item.ARROW, 1);
++            if (this.inGround && this.fromPlayer && this.shake <= 0 && entityhuman.inventory.canHold(itemstack) > 0) {
++                net.minecraft.server.EntityItem item = new net.minecraft.server.EntityItem(this.world, this.locX, this.locY, this.locZ, itemstack);
++
++                PlayerPickupItemEvent event = new PlayerPickupItemEvent((org.bukkit.entity.Player) entityhuman.getBukkitEntity(), new org.bukkit.craftbukkit.entity.CraftItem(this.world.getServer(), item), 0);
++                this.world.getServer().getPluginManager().callEvent(event);
++
++                if (event.isCancelled()) {
++                    return;
++                }
++            }
++            // CraftBukkit end
++
+             if (this.inGround && this.fromPlayer && this.shake <= 0 && entityhuman.inventory.pickup(new ItemStack(Item.ARROW, 1))) {
+                 this.world.makeSound(this, "random.pop", 0.2F, ((this.random.nextFloat() - this.random.nextFloat()) * 0.7F + 1.0F) * 2.0F);
+                 entityhuman.receive(this, 1);

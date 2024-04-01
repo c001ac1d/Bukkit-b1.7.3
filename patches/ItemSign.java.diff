@@ -1,0 +1,49 @@
+diff --git a/original/ItemSign.java b/modified/ItemSign.java
+index 9b2c6d01..def29a99 100644
+--- a/original/ItemSign.java
++++ b/modified/ItemSign.java
+@@ -1,5 +1,11 @@
+ package net.minecraft.server;
+ 
++// CraftBukkit start
++import org.bukkit.craftbukkit.block.CraftBlockState;
++import org.bukkit.craftbukkit.event.CraftEventFactory;
++import org.bukkit.event.block.BlockPlaceEvent;
++// CraftBukkit end
++
+ public class ItemSign extends Item {
+ 
+     public ItemSign(int i) {
+@@ -13,6 +19,8 @@ public class ItemSign extends Item {
+         } else if (!world.getMaterial(i, j, k).isBuildable()) {
+             return false;
+         } else {
++            int clickedX = i, clickedY = j, clickedZ = k; // CraftBukkit
++
+             if (l == 1) {
+                 ++j;
+             }
+@@ -36,12 +44,23 @@ public class ItemSign extends Item {
+             if (!Block.SIGN_POST.canPlace(world, i, j, k)) {
+                 return false;
+             } else {
++                CraftBlockState blockState = CraftBlockState.getBlockState(world, i, j, k); // CraftBukkit
++
+                 if (l == 1) {
+                     world.setTypeIdAndData(i, j, k, Block.SIGN_POST.id, MathHelper.floor((double) ((entityhuman.yaw + 180.0F) * 16.0F / 360.0F) + 0.5D) & 15);
+                 } else {
+                     world.setTypeIdAndData(i, j, k, Block.WALL_SIGN.id, l);
+                 }
+ 
++                // CraftBukkit start - sign
++                BlockPlaceEvent event = CraftEventFactory.callBlockPlaceEvent(world, entityhuman, blockState, clickedX, clickedY, clickedZ, l == 1 ? Block.SIGN_POST : Block.WALL_SIGN);
++
++                if (event.isCancelled() || !event.canBuild()) {
++                    event.getBlockPlaced().setTypeIdAndData(blockState.getTypeId(), blockState.getRawData(), false);
++                    return false;
++                }
++                // CraftBukkit end
++
+                 --itemstack.count;
+                 TileEntitySign tileentitysign = (TileEntitySign) world.getTileEntity(i, j, k);
+ 

@@ -1,0 +1,40 @@
+diff --git a/original/EntityCow.java b/modified/EntityCow.java
+index 638331e1..3694ab7b 100644
+--- a/original/EntityCow.java
++++ b/modified/EntityCow.java
+@@ -1,5 +1,12 @@
+ package net.minecraft.server;
+ 
++// CraftBukkit start
++import org.bukkit.Location;
++import org.bukkit.craftbukkit.event.CraftEventFactory;
++import org.bukkit.craftbukkit.inventory.CraftItemStack;
++import org.bukkit.event.player.PlayerBucketFillEvent;
++// CraftBukkit end
++
+ public class EntityCow extends EntityAnimal {
+ 
+     public EntityCow(World world) {
+@@ -40,7 +47,21 @@ public class EntityCow extends EntityAnimal {
+         ItemStack itemstack = entityhuman.inventory.getItemInHand();
+ 
+         if (itemstack != null && itemstack.id == Item.BUCKET.id) {
+-            entityhuman.inventory.setItem(entityhuman.inventory.itemInHandIndex, new ItemStack(Item.MILK_BUCKET));
++            // CraftBukkit start - got milk?
++            Location loc = this.getBukkitEntity().getLocation();
++            PlayerBucketFillEvent event = CraftEventFactory.callPlayerBucketFillEvent(entityhuman, loc.getBlockX(), loc.getBlockY(), loc.getBlockZ(), -1, itemstack, Item.MILK_BUCKET);
++
++            if (event.isCancelled()) {
++                return false;
++            }
++
++            CraftItemStack itemInHand = (CraftItemStack) event.getItemStack();
++            byte data = itemInHand.getData() == null ? (byte) 0 : itemInHand.getData().getData();
++            itemstack = new ItemStack(itemInHand.getTypeId(), itemInHand.getAmount(), data);
++
++            entityhuman.inventory.setItem(entityhuman.inventory.itemInHandIndex, itemstack);
++            // CraftBukkit end
++
+             return true;
+         } else {
+             return false;

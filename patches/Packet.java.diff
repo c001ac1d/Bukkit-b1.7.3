@@ -1,0 +1,82 @@
+diff --git a/original/Packet.java b/modified/Packet.java
+index d089b126..f83acc41 100644
+--- a/original/Packet.java
++++ b/modified/Packet.java
+@@ -56,7 +56,8 @@ public abstract class Packet {
+         return ((Integer) b.get(this.getClass())).intValue();
+     }
+ 
+-    public static Packet a(DataInputStream datainputstream, boolean flag) {
++    // CraftBukkit - throws IOException
++    public static Packet a(DataInputStream datainputstream, boolean flag) throws IOException {
+         boolean flag1 = false;
+         Packet packet = null;
+ 
+@@ -81,10 +82,18 @@ public abstract class Packet {
+         } catch (EOFException eofexception) {
+             System.out.println("Reached end of stream");
+             return null;
+-        } catch (IOException ex) {
+-            throw new RuntimeException(ex);
+         }
+ 
++        // CraftBukkit start
++        catch (java.net.SocketTimeoutException exception) {
++            System.out.println("Read timed out");
++            return null;
++        } catch (java.net.SocketException exception) {
++            System.out.println("Connection reset");
++            return null;
++        }
++        // CraftBukkit end
++
+         PacketCounter packetcounter = (PacketCounter) e.get(Integer.valueOf(i));
+ 
+         if (packetcounter == null) {
+@@ -101,12 +110,14 @@ public abstract class Packet {
+         return packet;
+     }
+ 
++    // CraftBukkit - throws IOException
+     public static void a(Packet packet, DataOutputStream dataoutputstream) throws IOException {
+         dataoutputstream.write(packet.b());
+         packet.a(dataoutputstream);
+     }
+ 
+-    public static void a(String s, DataOutputStream dataoutputstream) throws IOException {
++    // CraftBukkit - throws IOException
++    public static void a(String s, DataOutputStream dataoutputstream)  throws IOException {
+         if (s.length() > 32767) {
+             throw new IOException("String too big");
+         } else {
+@@ -115,7 +126,8 @@ public abstract class Packet {
+         }
+     }
+ 
+-    public static String a(DataInputStream datainputstream, int i) throws IOException {
++    // CraftBukkit - throws IOException
++    public static String a(DataInputStream datainputstream, int i)  throws IOException {
+         short short1 = datainputstream.readShort();
+ 
+         if (short1 > i) {
+@@ -133,9 +145,9 @@ public abstract class Packet {
+         }
+     }
+ 
+-    public abstract void a(DataInputStream datainputstream) throws IOException;
++    public abstract void a(DataInputStream datainputstream) throws IOException; // CraftBukkit
+ 
+-    public abstract void a(DataOutputStream dataoutputstream) throws IOException;
++    public abstract void a(DataOutputStream dataoutputstream) throws IOException; // CraftBukkit
+ 
+     public abstract void a(NetHandler nethandler);
+ 
+@@ -168,7 +180,7 @@ public abstract class Packet {
+         a(23, true, false, Packet23VehicleSpawn.class);
+         a(24, true, false, Packet24MobSpawn.class);
+         a(25, true, false, Packet25EntityPainting.class);
+-        a(27, false, true, Packet27.class);
++        a(27, false, false, Packet27.class); // CraftBukkit - true -> false; disabled unused packet. TODO -- check if needed
+         a(28, true, false, Packet28EntityVelocity.class);
+         a(29, true, false, Packet29DestroyEntity.class);
+         a(30, true, false, Packet30Entity.class);

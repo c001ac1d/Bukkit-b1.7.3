@@ -1,0 +1,19 @@
+diff --git a/original/TileEntityChest.java b/modified/TileEntityChest.java
+index 746264a2..dbf08c15 100644
+--- a/original/TileEntityChest.java
++++ b/modified/TileEntityChest.java
+@@ -2,7 +2,13 @@ package net.minecraft.server;
+ 
+ public class TileEntityChest extends TileEntity implements IInventory {
+ 
+-    private ItemStack[] items = new ItemStack[36];
++    private ItemStack[] items = new ItemStack[27]; // CraftBukkit
++
++    // CraftBukkit start
++    public ItemStack[] getContents() {
++        return this.items;
++    }
++    // CraftBukkit end
+ 
+     public TileEntityChest() {}
+ 

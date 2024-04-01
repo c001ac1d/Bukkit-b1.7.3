@@ -1,0 +1,17 @@
+diff --git a/original/InventoryCrafting.java b/modified/InventoryCrafting.java
+index 899cc065..9151b8bf 100644
+--- a/original/InventoryCrafting.java
++++ b/modified/InventoryCrafting.java
+@@ -6,6 +6,12 @@ public class InventoryCrafting implements IInventory {
+     private int b;
+     private Container c;
+ 
++    // CraftBukkit start
++    public ItemStack[] getContents() {
++        return this.items;
++    }
++    // CraftBukkit end
++
+     public InventoryCrafting(Container container, int i, int j) {
+         int k = i * j;
+ 

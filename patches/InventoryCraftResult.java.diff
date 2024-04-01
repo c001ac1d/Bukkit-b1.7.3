@@ -1,0 +1,17 @@
+diff --git a/original/InventoryCraftResult.java b/modified/InventoryCraftResult.java
+index f38c2a31..2d0964f9 100644
+--- a/original/InventoryCraftResult.java
++++ b/modified/InventoryCraftResult.java
+@@ -4,6 +4,12 @@ public class InventoryCraftResult implements IInventory {
+ 
+     private ItemStack[] items = new ItemStack[1];
+ 
++    // CraftBukkit start
++    public ItemStack[] getContents() {
++        return this.items;
++    }
++    // CraftBukkit end
++
+     public InventoryCraftResult() {}
+ 
+     public int getSize() {

@@ -1,0 +1,103 @@
+diff --git a/original/BlockDispenser.java b/modified/BlockDispenser.java
+index 98f881a5..89975dd8 100644
+--- a/original/BlockDispenser.java
++++ b/modified/BlockDispenser.java
+@@ -2,6 +2,12 @@ package net.minecraft.server;
+ 
+ import java.util.Random;
+ 
++// CraftBukkit start
++import org.bukkit.craftbukkit.inventory.CraftItemStack;
++import org.bukkit.event.block.BlockDispenseEvent;
++import org.bukkit.util.Vector;
++// CraftBukkit end
++
+ public class BlockDispenser extends BlockContainer {
+ 
+     private Random a = new Random();
+@@ -67,7 +73,8 @@ public class BlockDispenser extends BlockContainer {
+         }
+     }
+ 
+-    private void dispense(World world, int i, int j, int k, Random random) {
++    // CraftBukkit - private -> public
++    public void dispense(World world, int i, int j, int k, Random random) {
+         int l = world.getData(i, j, k);
+         byte b0 = 0;
+         byte b1 = 0;
+@@ -83,7 +90,17 @@ public class BlockDispenser extends BlockContainer {
+         }
+ 
+         TileEntityDispenser tileentitydispenser = (TileEntityDispenser) world.getTileEntity(i, j, k);
+-        ItemStack itemstack = tileentitydispenser.b();
++        // CraftBukkit start
++        int dispenseSlot = tileentitydispenser.findDispenseSlot();
++        ItemStack itemstack = null;
++        if (dispenseSlot > -1) {
++            itemstack = tileentitydispenser.getContents()[dispenseSlot];
++
++            // Copy item stack, because we want it to have 1 item
++            itemstack = new ItemStack(itemstack.id, 1, itemstack.damage);
++        }
++        // CraftBukkit end
++
+         double d0 = (double) i + (double) b0 * 0.6D + 0.5D;
+         double d1 = (double) j + 0.5D;
+         double d2 = (double) k + (double) b1 * 0.6D + 0.5D;
+@@ -91,6 +108,35 @@ public class BlockDispenser extends BlockContainer {
+         if (itemstack == null) {
+             world.e(1001, i, j, k, 0);
+         } else {
++            // CraftBukkit start
++            double d3 = random.nextDouble() * 0.1D + 0.2D;
++            double motX = (double) b0 * d3;
++            double motY = 0.20000000298023224D;
++            double motZ = (double) b1 * d3;
++            motX += random.nextGaussian() * 0.007499999832361937D * 6.0D;
++            motY += random.nextGaussian() * 0.007499999832361937D * 6.0D;
++            motZ += random.nextGaussian() * 0.007499999832361937D * 6.0D;
++
++            org.bukkit.block.Block block = world.getWorld().getBlockAt(i, j, k);
++            org.bukkit.inventory.ItemStack bukkitItem = new CraftItemStack(itemstack).clone();
++
++            BlockDispenseEvent event = new BlockDispenseEvent(block, bukkitItem, new Vector(motX, motY, motZ));
++            world.getServer().getPluginManager().callEvent(event);
++
++            if (event.isCancelled()) {
++                return;
++            }
++
++            // Actually remove the item
++            tileentitydispenser.splitStack(dispenseSlot, 1);
++
++            motX = event.getVelocity().getX();
++            motY = event.getVelocity().getY();
++            motZ = event.getVelocity().getZ();
++
++            itemstack = new ItemStack(event.getItem().getTypeId(), event.getItem().getAmount(), event.getItem().getDurability());
++            // CraftBukkit end
++
+             if (itemstack.id == Item.ARROW.id) {
+                 EntityArrow entityarrow = new EntityArrow(world, d0, d1, d2);
+ 
+@@ -112,14 +158,12 @@ public class BlockDispenser extends BlockContainer {
+                 world.e(1002, i, j, k, 0);
+             } else {
+                 EntityItem entityitem = new EntityItem(world, d0, d1 - 0.3D, d2, itemstack);
+-                double d3 = random.nextDouble() * 0.1D + 0.2D;
+-
+-                entityitem.motX = (double) b0 * d3;
+-                entityitem.motY = 0.20000000298023224D;
+-                entityitem.motZ = (double) b1 * d3;
+-                entityitem.motX += random.nextGaussian() * 0.007499999832361937D * 6.0D;
+-                entityitem.motY += random.nextGaussian() * 0.007499999832361937D * 6.0D;
+-                entityitem.motZ += random.nextGaussian() * 0.007499999832361937D * 6.0D;
++                // CraftBukkit start
++                // double d3 = random.nextDouble() * 0.1D + 0.2D; // Moved up
++                entityitem.motX = motX;
++                entityitem.motY = motY;
++                entityitem.motZ = motZ;
++                // CraftBukkit end
+                 world.addEntity(entityitem);
+                 world.e(1000, i, j, k, 0);
+             }

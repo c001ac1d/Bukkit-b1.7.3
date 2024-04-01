@@ -1,0 +1,71 @@
+diff --git a/original/BlockPortal.java b/modified/BlockPortal.java
+index b81fe142..f9ab850c 100644
+--- a/original/BlockPortal.java
++++ b/modified/BlockPortal.java
+@@ -2,6 +2,11 @@ package net.minecraft.server;
+ 
+ import java.util.Random;
+ 
++// CraftBukkit start
++import org.bukkit.event.entity.EntityPortalEnterEvent;
++import org.bukkit.event.world.PortalCreateEvent;
++// CraftBukkit end
++
+ public class BlockPortal extends BlockBreakable {
+ 
+     public BlockPortal(int i, int j) {
+@@ -50,6 +55,11 @@ public class BlockPortal extends BlockBreakable {
+         if (b0 == b1) {
+             return false;
+         } else {
++            // CraftBukkit start
++            java.util.Collection<org.bukkit.block.Block> blocks = new java.util.HashSet<org.bukkit.block.Block>();
++            org.bukkit.World bworld = world.getWorld();
++            // CraftBukkit end
++
+             if (world.getTypeId(i - b0, j, k - b1) == 0) {
+                 i -= b0;
+                 k -= b1;
+@@ -68,6 +78,8 @@ public class BlockPortal extends BlockBreakable {
+                         if (flag) {
+                             if (j1 != Block.OBSIDIAN.id) {
+                                 return false;
++                            } else {
++                                blocks.add(bworld.getBlockAt(i + b0 * l, j + i1, k + b1 * l)); // CraftBukkit
+                             }
+                         } else if (j1 != 0 && j1 != Block.FIRE.id) {
+                             return false;
+@@ -76,6 +88,21 @@ public class BlockPortal extends BlockBreakable {
+                 }
+             }
+ 
++            // CraftBukkit start
++            for (l = 0; l < 2; ++l) {
++                for (i1 = 0; i1 < 3; ++i1) {
++                    blocks.add(bworld.getBlockAt(i + b0 * l, j + i1, k + b1 * l));
++                }
++            }
++
++            PortalCreateEvent event = new PortalCreateEvent(blocks, bworld);
++            world.getServer().getPluginManager().callEvent(event);
++
++            if (event.isCancelled()) {
++                return false;
++            }
++            // CraftBukkit end
++
+             world.suppressPhysics = true;
+ 
+             for (l = 0; l < 2; ++l) {
+@@ -134,6 +161,11 @@ public class BlockPortal extends BlockBreakable {
+ 
+     public void a(World world, int i, int j, int k, Entity entity) {
+         if (entity.vehicle == null && entity.passenger == null) {
++            // CraftBukkit start - Entity in portal
++            EntityPortalEnterEvent event = new EntityPortalEnterEvent(entity.getBukkitEntity(), new org.bukkit.Location(world.getWorld(), i, j, k));
++            world.getServer().getPluginManager().callEvent(event);
++            // CraftBukkit end
++
+             entity.P();
+         }
+     }

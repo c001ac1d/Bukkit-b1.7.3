@@ -1,0 +1,31 @@
+diff --git a/original/ItemMinecart.java b/modified/ItemMinecart.java
+index 1e6623bc..5e83b1ad 100644
+--- a/original/ItemMinecart.java
++++ b/modified/ItemMinecart.java
+@@ -1,5 +1,11 @@
+ package net.minecraft.server;
+ 
++// CraftBukkit start
++import org.bukkit.craftbukkit.event.CraftEventFactory;
++import org.bukkit.event.block.Action;
++import org.bukkit.event.player.PlayerInteractEvent;
++// CraftBukkit end
++
+ public class ItemMinecart extends Item {
+ 
+     public int a;
+@@ -15,6 +21,14 @@ public class ItemMinecart extends Item {
+ 
+         if (BlockMinecartTrack.c(i1)) {
+             if (!world.isStatic) {
++                // CraftBukkit start - Minecarts
++                PlayerInteractEvent event = CraftEventFactory.callPlayerInteractEvent(entityhuman, Action.RIGHT_CLICK_BLOCK, i, j, k, l, itemstack);
++
++                if (event.isCancelled()) {
++                    return false;
++                }
++                // CraftBukkit end
++
+                 world.addEntity(new EntityMinecart(world, (double) ((float) i + 0.5F), (double) ((float) j + 0.5F), (double) ((float) k + 0.5F), this.a));
+             }
+ 

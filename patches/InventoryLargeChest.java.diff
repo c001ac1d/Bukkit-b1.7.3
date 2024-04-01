@@ -1,0 +1,21 @@
+diff --git a/original/InventoryLargeChest.java b/modified/InventoryLargeChest.java
+index b5f0d7b8..15dcdd8a 100644
+--- a/original/InventoryLargeChest.java
++++ b/modified/InventoryLargeChest.java
+@@ -6,6 +6,16 @@ public class InventoryLargeChest implements IInventory {
+     private IInventory b;
+     private IInventory c;
+ 
++    // CraftBukkit start
++    public ItemStack[] getContents() {
++        ItemStack[] result = new ItemStack[this.getSize()];
++        for (int i = 0; i < result.length; i++) {
++            result[i] = this.getItem(i);
++        }
++        return result;
++    }
++    // CraftBukkit end
++
+     public InventoryLargeChest(String s, IInventory iinventory, IInventory iinventory1) {
+         this.a = s;
+         this.b = iinventory;

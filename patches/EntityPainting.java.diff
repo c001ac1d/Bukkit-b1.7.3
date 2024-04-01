@@ -1,0 +1,57 @@
+diff --git a/original/EntityPainting.java b/modified/EntityPainting.java
+index 78846f09..40d28bae 100644
+--- a/original/EntityPainting.java
++++ b/modified/EntityPainting.java
+@@ -3,6 +3,11 @@ package net.minecraft.server;
+ import java.util.ArrayList;
+ import java.util.List;
+ 
++// CraftBukkit start
++import org.bukkit.event.painting.PaintingBreakByEntityEvent;
++import org.bukkit.event.painting.PaintingBreakByWorldEvent;
++// CraftBukkit end
++
+ public class EntityPainting extends Entity {
+ 
+     private int f;
+@@ -116,6 +121,15 @@ public class EntityPainting extends Entity {
+         if (this.f++ == 100 && !this.world.isStatic) {
+             this.f = 0;
+             if (!this.h()) {
++                // CraftBukkit start
++                PaintingBreakByWorldEvent event = new PaintingBreakByWorldEvent((org.bukkit.entity.Painting) this.getBukkitEntity());
++                this.world.getServer().getPluginManager().callEvent(event);
++
++                if (event.isCancelled()) {
++                    return;
++                }
++                // CraftBukkit end
++
+                 this.die();
+                 this.world.addEntity(new EntityItem(this.world, this.locX, this.locY, this.locZ, new ItemStack(Item.PAINTING)));
+             }
+@@ -186,6 +200,15 @@ public class EntityPainting extends Entity {
+ 
+     public boolean damageEntity(Entity entity, int i) {
+         if (!this.dead && !this.world.isStatic) {
++            // CraftBukkit start
++            PaintingBreakByEntityEvent event = new PaintingBreakByEntityEvent((org.bukkit.entity.Painting) this.getBukkitEntity(), entity == null ? null : entity.getBukkitEntity());
++            this.world.getServer().getPluginManager().callEvent(event);
++
++            if (event.isCancelled()) {
++                return true;
++            }
++            // CraftBukkit end
++
+             this.die();
+             this.af();
+             this.world.addEntity(new EntityItem(this.world, this.locX, this.locY, this.locZ, new ItemStack(Item.PAINTING)));
+@@ -226,7 +249,7 @@ public class EntityPainting extends Entity {
+         this.b(this.a);
+     }
+ 
+-    public void move(double d0, double d1, double d2) {
++    public void a(double d0, double d1, double d2) {
+         if (!this.world.isStatic && d0 * d0 + d1 * d1 + d2 * d2 > 0.0D) {
+             this.die();
+             this.world.addEntity(new EntityItem(this.world, this.locX, this.locY, this.locZ, new ItemStack(Item.PAINTING)));

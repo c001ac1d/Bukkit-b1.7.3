@@ -1,0 +1,44 @@
+diff --git a/original/EntityPigZombie.java b/modified/EntityPigZombie.java
+index f9f9376f..1e3b5246 100644
+--- a/original/EntityPigZombie.java
++++ b/modified/EntityPigZombie.java
+@@ -2,9 +2,14 @@ package net.minecraft.server;
+ 
+ import java.util.List;
+ 
++// CraftBukkit start
++import org.bukkit.craftbukkit.entity.CraftEntity;
++import org.bukkit.event.entity.EntityTargetEvent;
++// CraftBukkit end
++
+ public class EntityPigZombie extends EntityZombie {
+ 
+-    private int angerLevel = 0;
++    public int angerLevel = 0; // CraftBukkit - private -> public
+     private int soundDelay = 0;
+     private static final ItemStack f = new ItemStack(Item.GOLD_SWORD, 1);
+ 
+@@ -68,6 +73,23 @@ public class EntityPigZombie extends EntityZombie {
+     }
+ 
+     private void d(Entity entity) {
++        // CraftBukkit start
++        org.bukkit.entity.Entity bukkitTarget = entity == null ? null : entity.getBukkitEntity();
++
++        EntityTargetEvent event = new EntityTargetEvent(this.getBukkitEntity(), bukkitTarget, EntityTargetEvent.TargetReason.PIG_ZOMBIE_TARGET);
++        this.world.getServer().getPluginManager().callEvent(event);
++
++        if (event.isCancelled()) {
++            return;
++        }
++
++        if (event.getTarget() == null) {
++            this.target = null;
++            return;
++        }
++        entity = ((CraftEntity) event.getTarget()).getHandle();
++        // CraftBukkit end
++
+         this.target = entity;
+         this.angerLevel = 400 + this.random.nextInt(400);
+         this.soundDelay = this.random.nextInt(40);

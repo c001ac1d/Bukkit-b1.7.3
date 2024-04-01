@@ -1,0 +1,14 @@
+diff --git a/original/Block.java b/modified/Block.java
+index 72df0711..8183374e 100644
+--- a/original/Block.java
++++ b/modified/Block.java
+@@ -295,7 +295,8 @@ public class Block {
+             int i1 = this.a(world.random);
+ 
+             for (int j1 = 0; j1 < i1; ++j1) {
+-                if (world.random.nextFloat() <= f) {
++                // CraftBukkit - <= to < to allow for plugins to completely disable block drops from explosions
++                if (world.random.nextFloat() < f) {
+                     int k1 = this.a(l, world.random);
+ 
+                     if (k1 > 0) {

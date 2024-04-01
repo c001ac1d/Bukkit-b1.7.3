@@ -1,0 +1,82 @@
+diff --git a/original/EntityTracker.java b/modified/EntityTracker.java
+index f04a6056..db1bcc74 100644
+--- a/original/EntityTracker.java
++++ b/modified/EntityTracker.java
+@@ -19,7 +19,8 @@ public class EntityTracker {
+         this.d = minecraftserver.serverConfigurationManager.a();
+     }
+ 
+-    public void track(Entity entity) {
++    // CraftBukkit - synchronized
++    public synchronized void track(Entity entity) {
+         if (entity instanceof EntityPlayer) {
+             this.a(entity, 512, 2);
+             EntityPlayer entityplayer = (EntityPlayer) entity;
+@@ -65,13 +66,15 @@ public class EntityTracker {
+         this.a(entity, i, j, false);
+     }
+ 
+-    public void a(Entity entity, int i, int j, boolean flag) {
++    // CraftBukkit - synchronized
++    public synchronized void a(Entity entity, int i, int j, boolean flag) {
+         if (i > this.d) {
+             i = this.d;
+         }
+ 
+         if (this.b.b(entity.id)) {
+-            throw new IllegalStateException("Entity is already tracked!");
++            // CraftBukkit - removed exception throw as tracking an already tracked entity theoretically shouldn't cause any issues.
++            // throw new IllegalStateException("Entity is already tracked!");
+         } else {
+             EntityTrackerEntry entitytrackerentry = new EntityTrackerEntry(entity, i, j, flag);
+ 
+@@ -81,7 +84,8 @@ public class EntityTracker {
+         }
+     }
+ 
+-    public void untrackEntity(Entity entity) {
++    // CraftBukkit - synchronized
++    public synchronized void untrackEntity(Entity entity) {
+         if (entity instanceof EntityPlayer) {
+             EntityPlayer entityplayer = (EntityPlayer) entity;
+             Iterator iterator = this.a.iterator();
+@@ -101,7 +105,8 @@ public class EntityTracker {
+         }
+     }
+ 
+-    public void updatePlayers() {
++    // CraftBukkit - synchronized
++    public synchronized void updatePlayers() {
+         ArrayList arraylist = new ArrayList();
+         Iterator iterator = this.a.iterator();
+ 
+@@ -128,7 +133,8 @@ public class EntityTracker {
+         }
+     }
+ 
+-    public void a(Entity entity, Packet packet) {
++    // CraftBukkit - synchronized
++    public synchronized void a(Entity entity, Packet packet) {
+         EntityTrackerEntry entitytrackerentry = (EntityTrackerEntry) this.b.a(entity.id);
+ 
+         if (entitytrackerentry != null) {
+@@ -136,7 +142,8 @@ public class EntityTracker {
+         }
+     }
+ 
+-    public void sendPacketToEntity(Entity entity, Packet packet) {
++    // CraftBukkit - synchronized
++    public synchronized void sendPacketToEntity(Entity entity, Packet packet) {
+         EntityTrackerEntry entitytrackerentry = (EntityTrackerEntry) this.b.a(entity.id);
+ 
+         if (entitytrackerentry != null) {
+@@ -144,7 +151,8 @@ public class EntityTracker {
+         }
+     }
+ 
+-    public void untrackPlayer(EntityPlayer entityplayer) {
++    // CraftBukkit - synchronized
++    public synchronized void untrackPlayer(EntityPlayer entityplayer) {
+         Iterator iterator = this.a.iterator();
+ 
+         while (iterator.hasNext()) {

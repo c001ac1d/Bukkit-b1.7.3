@@ -1,0 +1,36 @@
+diff --git a/original/WorldGenBigTree.java b/modified/WorldGenBigTree.java
+index a1642bc5..372d6059 100644
+--- a/original/WorldGenBigTree.java
++++ b/modified/WorldGenBigTree.java
+@@ -2,11 +2,13 @@ package net.minecraft.server;
+ 
+ import java.util.Random;
+ 
++import org.bukkit.BlockChangeDelegate; // CraftBukkit
++
+ public class WorldGenBigTree extends WorldGenerator {
+ 
+     static final byte[] a = new byte[] { (byte) 2, (byte) 0, (byte) 0, (byte) 1, (byte) 2, (byte) 1};
+     Random b = new Random();
+-    World c;
++    BlockChangeDelegate c; // CraftBukkit
+     int[] d = new int[] { 0, 0, 0};
+     int e = 0;
+     int f;
+@@ -333,6 +335,16 @@ public class WorldGenBigTree extends WorldGenerator {
+     }
+ 
+     public boolean a(World world, Random random, int i, int j, int k) {
++        // CraftBukkit start
++        // sk: The idea is to have (our) WorldServer implement
++        // BlockChangeDelegate and then we can implicitly cast World to
++        // WorldServer (a safe cast, AFAIK) and no code will be broken. This
++        // then allows plugins to catch manually-invoked generation events
++        return this.generate((BlockChangeDelegate) world, random, i, j, k);
++    }
++
++    public boolean generate(BlockChangeDelegate world, Random random, int i, int j, int k) {
++        // CraftBukkit end
+         this.c = world;
+         long l = random.nextLong();
+ 

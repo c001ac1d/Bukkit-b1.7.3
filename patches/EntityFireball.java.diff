@@ -1,0 +1,94 @@
+diff --git a/original/EntityFireball.java b/modified/EntityFireball.java
+index 034fbcc5..7b7335b8 100644
+--- a/original/EntityFireball.java
++++ b/modified/EntityFireball.java
+@@ -2,6 +2,17 @@ package net.minecraft.server;
+ 
+ import java.util.List;
+ 
++// CraftBukkit start
++import org.bukkit.craftbukkit.entity.CraftEntity;
++import org.bukkit.craftbukkit.entity.CraftLivingEntity;
++import org.bukkit.entity.Explosive;
++import org.bukkit.entity.Projectile;
++import org.bukkit.event.entity.EntityDamageByEntityEvent;
++import org.bukkit.event.entity.EntityDamageEvent;
++import org.bukkit.event.entity.ExplosionPrimeEvent;
++import org.bukkit.event.entity.ProjectileHitEvent;
++// CraftBukkit end
++
+ public class EntityFireball extends Entity {
+ 
+     private int f = -1;
+@@ -17,6 +28,9 @@ public class EntityFireball extends Entity {
+     public double d;
+     public double e;
+ 
++    public float yield = 1; // CraftBukkit
++    public boolean isIncendiary = true; // CraftBukkit
++
+     public EntityFireball(World world) {
+         super(world);
+         this.b(1.0F, 1.0F);
+@@ -32,6 +46,11 @@ public class EntityFireball extends Entity {
+         this.setPosition(this.locX, this.locY, this.locZ);
+         this.height = 0.0F;
+         this.motX = this.motY = this.motZ = 0.0D;
++        // CraftBukkit start (added setDirection method)
++        this.setDirection(d0, d1, d2);
++    }
++
++    public void setDirection(double d0, double d1, double d2) {
+         d0 += this.random.nextGaussian() * 0.4D;
+         d1 += this.random.nextGaussian() * 0.4D;
+         d2 += this.random.nextGaussian() * 0.4D;
+@@ -109,12 +128,46 @@ public class EntityFireball extends Entity {
+         }
+ 
+         if (movingobjectposition != null) {
++            // CraftBukkit start
++            ProjectileHitEvent phe = new ProjectileHitEvent((Projectile) this.getBukkitEntity());
++            this.world.getServer().getPluginManager().callEvent(phe);
++            // CraftBukkit end
+             if (!this.world.isStatic) {
+-                if (movingobjectposition.entity != null && movingobjectposition.entity.damageEntity(this.shooter, 0)) {
+-                    ;
++                // CraftBukkit start
++                if (movingobjectposition.entity != null) {
++                    boolean stick;
++                    if (movingobjectposition.entity instanceof EntityLiving) {
++                        org.bukkit.entity.Entity damagee = movingobjectposition.entity.getBukkitEntity();
++                        Projectile projectile = (Projectile) this.getBukkitEntity();
++
++                        // TODO @see EntityArrow#162
++                        EntityDamageByEntityEvent event = new EntityDamageByEntityEvent(projectile, damagee, EntityDamageEvent.DamageCause.PROJECTILE, 0);
++                        this.world.getServer().getPluginManager().callEvent(event);
++
++                        this.shooter = (projectile.getShooter() == null) ? null : ((CraftLivingEntity) projectile.getShooter()).getHandle();
++
++                        if (event.isCancelled()) {
++                            stick = !projectile.doesBounce();
++                        } else {
++                            // this function returns if the fireball should stick in or not, i.e. !bounce
++                            stick = movingobjectposition.entity.damageEntity(this, event.getDamage());
++                        }
++                    } else {
++                        stick = movingobjectposition.entity.damageEntity(this.shooter, 0);
++                    }
++                    if (stick) {
++                        ;
++                    }
+                 }
+ 
+-                this.world.createExplosion((Entity) null, this.locX, this.locY, this.locZ, 1.0F, true);
++                ExplosionPrimeEvent event = new ExplosionPrimeEvent((Explosive) CraftEntity.getEntity(this.world.getServer(), this));
++                this.world.getServer().getPluginManager().callEvent(event);
++
++                if (!event.isCancelled()) {
++                    // give 'this' instead of (Entity) null so we know what causes the damage
++                    this.world.createExplosion(this, this.locX, this.locY, this.locZ, event.getRadius(), event.getFire());
++                }
++                // CraftBukkit end
+             }
+ 
+             this.die();

@@ -1,0 +1,15 @@
+diff --git a/original/WorldGenClay.java b/modified/WorldGenClay.java
+index 6e5d87c6..0f16a825 100644
+--- a/original/WorldGenClay.java
++++ b/modified/WorldGenClay.java
+@@ -35,8 +35,8 @@ public class WorldGenClay extends WorldGenerator {
+                 int j1 = MathHelper.floor(d6 + d10 / 2.0D);
+                 int k1 = MathHelper.floor(d7 - d11 / 2.0D);
+                 int l1 = MathHelper.floor(d7 + d11 / 2.0D);
+-                int i2 = MathHelper.floor(d8 - d10 / 2.0D);
+-                int j2 = MathHelper.floor(d8 + d10 / 2.0D);
++                int i2 = MathHelper.floor(d8 - d10 / 2.0D); // CraftBukkit - d6 -> d8
++                int j2 = MathHelper.floor(d8 + d10 / 2.0D); // CraftBukkit - d6 -> d8
+ 
+                 for (int k2 = i1; k2 <= j1; ++k2) {
+                     for (int l2 = k1; l2 <= l1; ++l2) {

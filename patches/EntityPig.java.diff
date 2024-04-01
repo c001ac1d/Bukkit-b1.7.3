@@ -1,0 +1,35 @@
+diff --git a/original/EntityPig.java b/modified/EntityPig.java
+index 66b84bdf..10f4d8aa 100644
+--- a/original/EntityPig.java
++++ b/modified/EntityPig.java
+@@ -1,5 +1,10 @@
+ package net.minecraft.server;
+ 
++// CraftBukkit start
++import org.bukkit.event.entity.CreatureSpawnEvent.SpawnReason;
++import org.bukkit.event.entity.PigZapEvent;
++// CraftBukkit end
++
+ public class EntityPig extends EntityAnimal {
+ 
+     public EntityPig(World world) {
+@@ -63,8 +68,18 @@ public class EntityPig extends EntityAnimal {
+         if (!this.world.isStatic) {
+             EntityPigZombie entitypigzombie = new EntityPigZombie(this.world);
+ 
++            // CraftBukkit start
++            PigZapEvent event = new PigZapEvent(this.getBukkitEntity(), entityweatherstorm.getBukkitEntity(), entitypigzombie.getBukkitEntity());
++            this.world.getServer().getPluginManager().callEvent(event);
++
++            if (event.isCancelled()) {
++                return;
++            }
++            // CraftBukkit end
++
+             entitypigzombie.setPositionRotation(this.locX, this.locY, this.locZ, this.yaw, this.pitch);
+-            this.world.addEntity(entitypigzombie);
++             // CraftBukkit - added a reason for spawning this creature
++            this.world.addEntity(entitypigzombie, SpawnReason.LIGHTNING);
+             this.die();
+         }
+     }
