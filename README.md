@@ -1,30 +1,29 @@
-Bukkit
-======
+# Bukkit API & CraftBukkit implementation for MC Beta 1.7.3
+This repository contains fixed Bukkit API and CraftBukkit sources collected from Spigot Stash and Bukkit GitHub.
 
-A Minecraft Server API.
+The goal is to provide a working version of CraftBukkit for MC version Beta 1.7.3, as it gained relevancy lately.
 
-Website: [http://bukkit.org](http://bukkit.org)  
-Bugs/Suggestions: [http://leaky.bukkit.org](http://leaky.bukkit.org)
+# Usage
+## Building
+As you might have already noticed, this repository does not contain the sources of a CraftBukkit Beta 1.7.3 server. Instead, it contains patches that can be applied to
+sources of a vanilla server, thus producing modified sources to work with CraftBukkit.
 
-Compilation
------------
+1. Run the `preparePatches.sh` shell script. Make sure that the `src/main/resources` and `src/main/java/net/minecraft/server` folders are created after that.
+2. Obtain clean sources of a Beta 1.7.3 server. You can use my repository: https://github.com/c001ac1d/mc-dev-b1.7.3
+3. Move all .java files from `net/minecraft/server` directory in the server sources to the `original` directory.
+4. Run the `applyPatches.sh` shell script.
+5. Copy the `lang`, `achievement` and `font.txt` files and folders from the vanilla server repository to `src/main/resources`.
+6. Build the project as a JAR using gradle.
 
-We use maven to handle our dependencies.
+## Creating patches
+If you need to create your own patches (you probably don't), follow these steps:
 
-* Install [Maven 3](http://maven.apache.org/download.html)
-* Check out this repo and: `mvn clean install`
+1. Run the `cleanPatches.sh` shell script to remove the original patches.
+2. Run the `preparePatches.sh` shell script. It will create all necessary folder for future steps.
+3. Obtain clean sources of a Beta 1.7.3 server. You can use my repository: https://github.com/c001ac1d/mc-dev-b1.7.3
+4. Move all .java files from `net/minecraft/server` directory in the server sources to the `original` directory.
+5. Obtain modified sources of a Beta 1.7.3 server. Hint: https://hub.spigotmc.org/stash/projects/SPIGOT/repos/craftbukkit/browse/src/main/java/net/minecraft/server?at=54bcd1c1f36691a714234e5ca2f30a20b3ad2816
+6. Move all .java files of the modified server into the `modified` directory.
+7. Run the `makePatches.sh` shell script.
 
-Coding and Pull Request Conventions
------------
-
-* We generally follow the Sun/Oracle coding standards.
-* No tabs; use 4 spaces instead.
-* No trailing whitespaces.
-* No 80 column limit or midstatement newlines.
-* No CRLF lineendigs, LF only, put your gits 'core.autocrlf' on 'true'
-* Proper javadoc for each method added/changed to describe what it does.
-* The number of commits in a pull request should be kept to a minimum (squish them into one most of the time - use common sense!).
-* No merges should be included in pull requests unless the pull request's purpose is a merge.
-* Pull requests should be tested (does it compile? AND does it work?) before submission.
-
-Follow the above conventions if you want your pull requests accepted.
+You can find your patches in the `patches`.
