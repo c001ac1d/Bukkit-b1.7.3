@@ -40,6 +40,10 @@ public class ConsoleCommandSender implements CommandSender {
         return server;
     }
 
+    public String getName() {
+        return "CONSOLE";
+    }
+
     public boolean isPermissionSet(String name) {
         return perm.isPermissionSet(name);
     }

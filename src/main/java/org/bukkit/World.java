@@ -524,6 +524,21 @@ public interface World {
      */
     public boolean createExplosion(Location loc, float power);
 
+
+    /**
+     * Gets whether or not the world will automatically save
+     *
+     * @return true if the world will automatically save, otherwise false
+     */
+    public boolean isAutoSave();
+
+    /**
+     * Sets whether or not the world will automatically save
+     *
+     * @param value true if the world should automatically save, otherwise false
+     */
+    public void setAutoSave(boolean value);
+
     /**
      * Creates explosion at given coordinates with given power and optionally setting
      * blocks on fire.

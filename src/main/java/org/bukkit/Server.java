@@ -7,6 +7,7 @@ import org.bukkit.inventory.Recipe;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.logging.Logger;
 import org.bukkit.command.PluginCommand;
@@ -21,6 +22,19 @@ import org.bukkit.scheduler.BukkitScheduler;
  * Represents a server implementation
  */
 public interface Server {
+    /**
+     * Used for all administrative messages, such as an operator using a command.
+     *
+     * For use in {@link #broadcast(java.lang.String, java.lang.String)}
+     */
+    public static final String BROADCAST_CHANNEL_ADMINISTRATIVE = "bukkit.broadcast.admin";
+
+    /**
+     * Used for all announcement messages, such as informing users that a player has joined.
+     *
+     * For use in {@link #broadcast(java.lang.String, java.lang.String)}
+     */
+    public static final String BROADCAST_CHANNEL_USERS = "bukkit.broadcast.user";
 
     /**
      * Gets the name of this server implementation
@@ -101,7 +115,28 @@ public interface Server {
     public boolean hasWhitelist();
 
     /**
+     * Sets the whitelist on or off
+     *
+     * @param value true if whitelist is on, otherwise false
+     */
+    public void setWhitelist(boolean value);
+
+    /**
+     * Gets a list of whitelisted players
+     *
+     * @return Set containing all whitelisted players
+     */
+    public Set<OfflinePlayer> getWhitelistedPlayers();
+
+    /**
+     * Reloads the whitelist from disk
+     */
+    public void reloadWhitelist();
+
+    /**
      * Broadcast a message to all players.
+     *
+     * This is the same as calling {@link #broadcast(java.lang.String, java.lang.String)} to {@link #BROADCAST_CHANNEL_USERS}
      *
      * @param message the message
      * @return the number of players
@@ -125,6 +160,14 @@ public interface Server {
      * @return Player if it was found, otherwise null
      */
     public Player getPlayer(String name);
+
+    /**
+     * Gets the player with the exact given name, case insensitive
+     *
+     * @param name Exact name of the player to retrieve
+     * @return Player object or null if not found
+     */
+    public Player getPlayerExact(String name);
 
     /**
      * Attempts to match any players with the given name, and returns a list
@@ -214,7 +257,7 @@ public interface Server {
      */
     public World createWorld(String name, World.Environment environment, long seed, ChunkGenerator generator);
 
-     /**
+    /**
      * Unloads a world with the given name.
      *
      * @param name Name of the world to unload
@@ -247,18 +290,18 @@ public interface Server {
      * @return World with the given Unique ID, or null if none exists.
      */
     public World getWorld(UUID uid);
-    
+
     /**
      * Gets the map from the given item ID.
-     * 
+     *
      * @param id ID of the map to get.
      * @return The MapView if it exists, or null otherwise.
      */
     public MapView getMap(short id);
-    
+
     /**
      * Create a new map with an automatically assigned ID.
-     * 
+     *
      * @param world The world the map will belong to.
      * @return The MapView just created.
      */
@@ -346,4 +389,56 @@ public interface Server {
      * @return Whether this server allows flying or not.
      */
     public boolean getAllowFlight();
+
+    /**
+     * Shutdowns the server, stopping everything.
+     */
+    public void shutdown();
+
+    /**
+     * Broadcasts the specified message to every user with the given permission
+     *
+     * @param message Message to broadcast
+     * @param permission Permission the users must have to receive the broadcast
+     * @return Amount of users who received the message
+     */
+    public int broadcast(String message, String permission);
+
+    /**
+     * Gets the player by the given name, regardless if they are offline or online.
+     *
+     * This will return an object even if the player does not exist. To this method, all players will exist.
+     *
+     * @param name Name of the player to retrieve
+     * @return OfflinePlayer object
+     */
+    public OfflinePlayer getOfflinePlayer(String name);
+
+    /**
+     * Gets a set containing all current IPs that are banned
+     *
+     * @return Set containing banned IP addresses
+     */
+    public Set<String> getIPBans();
+
+    /**
+     * Bans the specified address from the server
+     *
+     * @param address IP address to ban
+     */
+    public void banIP(String address);
+
+    /**
+     * Unbans the specified address from the server
+     *
+     * @param address IP address to unban
+     */
+    public void unbanIP(String address);
+
+    /**
+     * Gets a set containing all banned players
+     *
+     * @return Set containing banned players
+     */
+    public Set<OfflinePlayer> getBannedPlayers();
 }

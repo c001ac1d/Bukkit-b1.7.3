@@ -1,7 +1,13 @@
 package org.bukkit.command;
 
+import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
+import org.bukkit.Server;
+import org.bukkit.permissions.Permissible;
+
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Represents a Command, which executes various tasks upon user input
@@ -15,6 +21,7 @@ public abstract class Command {
     private CommandMap commandMap = null;
     protected String description = "";
     protected String usageMessage;
+    private String permission;
 
     protected Command(String name) {
         this(name, "", "/" + name, new ArrayList<String>());
@@ -182,5 +189,62 @@ public abstract class Command {
     public Command setUsage(String usage) {
         this.usageMessage = usage;
         return this;
+    }
+
+    /**
+     * Gets the permission required by users to be able to perform this command
+     *
+     * @return Permission name, or null if none
+     */
+    public String getPermission() {
+        return permission;
+    }
+
+    /**
+     * Sets the permission required by users to be able to perform this command
+     *
+     * @param permission Permission name or null
+     */
+    public void setPermission(String permission) {
+        this.permission = permission;
+    }
+
+    /**
+     * Tests the given {@link CommandSender} to see if they can perform this command.
+     *
+     * If they do not have permission, they will be informed that they cannot do this.
+     *
+     * @param target User to test
+     * @return true if they can use it, otherwise false
+     */
+    public boolean testPermission(CommandSender target) {
+        if ((permission == null) || (permission.isEmpty()) || (target.hasPermission(permission))) {
+            return true;
+        }
+
+        target.sendMessage(ChatColor.RED + "I'm sorry, Dave. I'm afraid I can't do that.");
+        return false;
+    }
+
+    public static void broadcastCommandMessage(CommandSender source, String message) {
+        Set<Permissible> users = Bukkit.getPluginManager().getPermissionSubscriptions(Server.BROADCAST_CHANNEL_ADMINISTRATIVE);
+        String result = source.getName() + ": " + message;
+        String colored = ChatColor.GRAY + "(" + result + ")";
+
+        if (!(source instanceof ConsoleCommandSender)) {
+            source.sendMessage(message);
+        }
+
+        for (Permissible user : users) {
+            if (user instanceof CommandSender) {
+                CommandSender target = (CommandSender)user;
+
+                if (target instanceof ConsoleCommandSender) {
+                    target.sendMessage(result);
+                } else if (target != source) {
+                    target.sendMessage(colored);
+                }
+            }
+        }
     }
 }

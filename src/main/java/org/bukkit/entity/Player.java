@@ -1,13 +1,8 @@
 package org.bukkit.entity;
 
 import java.net.InetSocketAddress;
-import org.bukkit.Achievement;
-import org.bukkit.Effect;
-import org.bukkit.Instrument;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.Note;
-import org.bukkit.Statistic;
+
+import org.bukkit.*;
 import org.bukkit.command.CommandSender;
 import org.bukkit.map.MapView;
 
@@ -15,7 +10,7 @@ import org.bukkit.map.MapView;
  * Represents a player, connected or not
  *
  */
-public interface Player extends HumanEntity, CommandSender {
+public interface Player extends HumanEntity, CommandSender, OfflinePlayer {
 
     /**
      * Checks if this player is currently online
